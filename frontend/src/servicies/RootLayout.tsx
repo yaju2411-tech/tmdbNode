@@ -1,86 +1,50 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "./api-client";
+import useSignUpHook from "../hooks/useSignUpHook";
+import { api } from "./api-client";
 
 export function RootLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { userData, isLoading, logout } = useSignUpHook();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const path = location.pathname;
-      const isAuthPage =
-        path === "/loginPage" ||
-        path === "/loginUpPage";
-      // no session
-      if (!session && !isAuthPage) {
-        navigate("/");
-        return;
-      }
-      // verified check
-      const verified =
-        !!session?.user?.email_confirmed_at;
-      // if not verified
-      if (session && !verified) {
-        await supabase.auth.signOut();
-        navigate("/loginPage");
-        alert(
-          "Please verify your email first"
-        );
-        return;
-      }
-      // logged in + verified
-      if (session && isAuthPage) {
-        navigate("/app");
-      }
-    };
-    checkSession();
-    const { data: listener } =
-      supabase.auth.onAuthStateChange(
-        async (_event, session) => {
-          const path = location.pathname;
-          const isAuthPage =
-            path === "/loginPage" ||
-            path === "/signUpPage";
-          // logout
-          if (!session && !isAuthPage) {
-            navigate("/");
-            return;
-          }
-          // verify check
-          const verified =
-            !!session?.user?.email_confirmed_at;
-          if (session && !verified) {
-            await supabase.auth.signOut();
-            navigate("/loginPage");
-            alert(
-              "Verify your email first"
-            );
-            return;
-          }
-          // verified login
-          if (session && isAuthPage) {
-            navigate("/app");
-          }
-        }
-      );
-    return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, [location.pathname]);
+    if (isLoading) return;
+
+    const path = location.pathname;
+    const isAuthPage =
+      path === "/loginPage" ||
+      path === "/signUpPage";
+    
+    const isPublicPage = path === "/" || path === "/help" || path.startsWith("/receipt");
+
+    // no session
+    if (!userData && !isAuthPage && !isPublicPage) {
+      navigate("/");
+      return;
+    }
+
+    // if logged in but not verified
+    if (userData && !userData.isEmailVerified && userData.provider !== 'google') {
+      logout();
+      navigate("/loginPage");
+      alert("Please verify your email first");
+      return;
+    }
+
+    // logged in + verified
+    if (userData && isAuthPage) {
+      navigate("/app");
+    }
+  }, [location.pathname, userData, isLoading]);
 
   useEffect(() => {
     const callExpire = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      await fetch(
-        "https://jjrrlixvqkfypmfomcfl.supabase.co/functions/v1/expire-pending",
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        }
-      );
+      try {
+        await api.get("/cron/check-pending");
+      } catch (err) {
+        console.error("Cron failed", err);
+      }
     };
     callExpire();
     const interval = setInterval(callExpire, 60000);

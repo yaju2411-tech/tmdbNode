@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle2, Loader2, Send } from "lucide-react";
+import { CheckCircle2, Loader2, Send, X } from "lucide-react";
 import { api } from "../servicies/api-client";
 import { toast } from "sonner";
 
@@ -247,19 +247,45 @@ export const HelpTicketForm = () => {
                 multiple
                 onChange={(e) => {
                   if (e.target.files) {
-                    const files = Array.from(e.target.files);
-                    if (files.length > 5) {
-                      toast.error("You can only upload up to 5 images");
-                      e.target.value = "";
-                      return;
-                    }
-                    setProofImages(files);
+                    const newFiles = Array.from(e.target.files);
+                    setProofImages(prev => {
+                      const combined = [...prev, ...newFiles];
+                      if (combined.length > 5) {
+                        toast.error("You can only upload up to 5 images in total");
+                        return prev;
+                      }
+                      return combined;
+                    });
+                    // Reset input so same file can be selected again if needed
+                    e.target.value = "";
                   }
                 }}
                 className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-950/30 dark:file:text-red-400"
               />
               {proofImages.length > 0 && (
-                <p className="text-xs text-gray-500 mt-1">{proofImages.length} file(s) selected</p>
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-gray-500">{proofImages.length} file(s) selected</p>
+                  <div className="flex flex-wrap gap-3">
+                    {proofImages.map((file, index) => (
+                      <div key={index} className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-zinc-800 w-20 h-20 shadow-sm">
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt={`Preview ${index}`} 
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProofImages(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>

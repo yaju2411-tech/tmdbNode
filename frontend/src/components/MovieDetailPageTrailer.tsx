@@ -128,39 +128,39 @@ export const MovieTrailer = ({ onMoreDetail }: Props) => {
                                             Watch Now
                                         </Button>
                                     ) : status === "pending" ? (
-                                        <Button disabled className="bg-yellow-500">
-                                            Payment Processing
+                                        <Button disabled className="bg-yellow-600 text-white font-semibold">
+                                            Payment Processing (Pending)
                                         </Button>
                                     ) : status === "verification_failed" ? (
-                                        <Button disabled className="bg-red-500">
-                                            Verify Payment
+                                        <Button disabled className="bg-orange-500 text-white font-semibold">
+                                            Verification Failed
                                         </Button>
                                     ) : status === "gateway_failed" ? (
-                                        <Button onClick={handleRetry} className="bg-red-500">
-                                            Retry Payment
+                                        <Button onClick={handleRetry} className="bg-red-600 text-white font-semibold hover:bg-red-700">
+                                            Gateway Failed - Retry
                                         </Button>
                                     ) : status === "cancelled" ? (
                                         <Button onClick={handlePayment}
-                                            className="bg-blue-800 text-zinc-100 hover:bg-blue-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                                            Buy {amount} <IndianRupee />
+                                            className="bg-gray-500 text-zinc-100 hover:bg-gray-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
+                                            Cancelled - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
                                         </Button>
                                     ) : status === "failed" ? (
                                         <Button onClick={handlePayment}
-                                            className="bg-blue-800 text-zinc-100 hover:bg-blue-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                                            Buy {amount} <IndianRupee />
+                                            className="bg-red-800 text-zinc-100 hover:bg-red-900 hover:text-white py-2 rounded-md transition-colors font-semibold">
+                                            Failed - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
                                         </Button>
                                     ) : status === "manual_access" ? (
-                                        <Button className="bg-green-500">
-                                            Watch Now
+                                        <Button className="bg-green-600 text-white font-semibold">
+                                            Watch Now (Manual Access)
                                         </Button>
                                     ) : (
                                         <Button onClick={handlePayment}
                                             className="bg-blue-800 text-zinc-100 hover:bg-blue-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                                            Buy {amount} <IndianRupee />
+                                            Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
                                         </Button>
                                     )}
                                     {
-                                        status === "success" && "manual_access" && (
+                                        (status === "success" || status === "manual_access") && (
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>

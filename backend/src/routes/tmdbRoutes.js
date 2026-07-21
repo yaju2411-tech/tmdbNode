@@ -8,9 +8,9 @@ const router = express.Router();
 router.use("/", async (req, res) => {
   try {
     // req.path will be whatever comes after /api/tmdb (e.g., /discover/movie)
-    const tmdbUrl = `https://api.themoviedb.org/3${req.path}`;
+    const tmdbUrl = `https://api.tmdb.org/3${req.path}`;
     
-    // Use axios with family: 4 to force IPv4 and prevent ECONNRESET on broken IPv6 networks
+    // Using api.tmdb.org which often bypasses ISP blocking of api.themoviedb.org
     const response = await axios({
       method: req.method,
       url: tmdbUrl,
@@ -19,8 +19,7 @@ router.use("/", async (req, res) => {
         accept: "application/json",
         Authorization: `Bearer ${process.env.TMDB_BEARER_TOKEN}`,
       },
-      data: req.method !== 'GET' ? req.body : undefined,
-      httpsAgent: new https.Agent({ family: 4 })
+      data: req.method !== 'GET' ? req.body : undefined
     });
 
     res.status(response.status).json(response.data);

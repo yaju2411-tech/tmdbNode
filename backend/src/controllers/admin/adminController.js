@@ -6,6 +6,8 @@ import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import axios from "axios";
 import nodemailer from "nodemailer";
+import Receipt from "../../models/Receipt.js";
+import { reciptGenerator } from "../../utils/receiptNoGenerator.js";
 
 // Fetch all admin profiles
 export const getAdmins = async (req, res, next) => {
@@ -450,7 +452,7 @@ export const grantManualAccess = async (req, res, next) => {
         }
 
         // Fetch details from TMDB to construct the Purchase record
-        const tmdbUrl = `https://api.themoviedb.org/3/${contentType}/${contentId}?api_key=${process.env.TMDB_API_KEY}`;
+        const tmdbUrl = `https://api.tmdb.org/3/${contentType}/${contentId}?api_key=${process.env.TMDB_API_KEY}`;
         
         let title, poster;
         try {
@@ -461,26 +463,51 @@ export const grantManualAccess = async (req, res, next) => {
             return res.status(400).json({ success: false, message: "Invalid TMDB ID or unable to fetch content details." });
         }
 
-        // Create the purchase record
-        const existingPurchase = await Purchase.findOne({ user: user._id, contentId, contentType });
+        const receiptNo = reciptGenerator();
+        let existingPurchase = await Purchase.findOne({ user: user._id, contentId, contentType });
         
-        if (!existingPurchase) {
-            await Purchase.create({
+        if (existingPurchase) {
+            existingPurchase.status = "paid";
+            // Replace dummy or missing payment ID with a receipt number if not valid
+            if (!existingPurchase.razorpayPaymentId || !existingPurchase.razorpayPaymentId.startsWith("pay_")) {
+                existingPurchase.razorpayPaymentId = receiptNo;
+            }
+            await existingPurchase.save();
+        } else {
+            existingPurchase = await Purchase.create({
                 user: user._id,
                 contentId,
                 title,
                 poster,
                 contentType,
-                amount: 0,
+                amount: 0, // Granted for free
                 razorpayOrderId: "MANUAL_GRANT_" + Date.now(),
-                razorpayPaymentId: ticket.paymentId || "MANUAL_GRANT",
+                razorpayPaymentId: receiptNo,
+                status: "paid"
+            });
+        }
+
+        // Create Receipt so user can view/download proof of purchase
+        const existingReceipt = await Receipt.findOne({ purchase: existingPurchase._id });
+        if (!existingReceipt) {
+            await Receipt.create({
+                receiptNumber: receiptNo,
+                purchase: existingPurchase._id,
+                user: user._id,
+                orderId: existingPurchase.razorpayOrderId,
+                paymentId: existingPurchase.razorpayPaymentId,
+                contentId: existingPurchase.contentId,
+                title: existingPurchase.title,
+                contentType: existingPurchase.contentType,
+                amount: existingPurchase.amount,
                 status: "paid"
             });
         }
 
         // Mark ticket as resolved
         ticket.status = "resolved";
-        ticket.adminNote = `Manually granted access to ${title} (${contentId}).`;
+        ticket.paymentId = existingPurchase.razorpayPaymentId;
+        ticket.adminNote = `Manually granted access to ${title} (${contentId}). Receipt: ${existingPurchase.razorpayPaymentId}`;
         ticket.contentId = contentId;
         ticket.contentType = contentType;
         await ticket.save();

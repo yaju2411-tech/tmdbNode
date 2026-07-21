@@ -6,7 +6,7 @@ import { ReceiptCard } from "./ReceiptCard";
 export const ReceiptPage = () => {
   const { paymentId } = useParams();
   const isValidReceipt =
-    /^REC-\d{8}-\d{4}$/.test(paymentId || "");
+    /^REC-\d{8}-[A-Z0-9]{4}$/i.test(paymentId || "");
 
   if (!isValidReceipt) {return <div>Receipt is not valid</div>;}
   const { receipt, loading } = useReceipt(paymentId!);
