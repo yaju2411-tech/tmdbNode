@@ -69,7 +69,8 @@ export const usePayment = () => {
   const verifyPayment = async (
     response: any,
     id: number,
-    contentType: "movie" | "tv"
+    contentType: "movie" | "tv",
+    title: string
   ) => {
     try {
       const res = await api.post("/payment/verify", {
@@ -87,6 +88,15 @@ export const usePayment = () => {
         dispatch({
           type: "FAIL",
           payload: "Payment verification failed",
+        });
+        toast.error("Payment Verification Failed", {
+          description: `If money was deducted, please submit a ticket.\nContent Name: ${title}\nContent ID: ${id}\nOrder ID: ${response.razorpay_order_id}`,
+          action: {
+            label: "Copy ID",
+            onClick: () => navigator.clipboard.writeText(String(id)),
+          },
+          duration: Number.POSITIVE_INFINITY,
+          closeButton: true,
         });
         return;
       }
@@ -107,6 +117,15 @@ export const usePayment = () => {
       dispatch({
         type: "FAIL",
         payload: err.response?.data?.message || err.message || "Verification failed",
+      });
+      toast.error("Payment Verification Failed", {
+        description: `If money was deducted, please submit a ticket.\nContent Name: ${title}\nContent ID: ${id}\nOrder ID: ${response.razorpay_order_id}`,
+        action: {
+          label: "Copy ID",
+          onClick: () => navigator.clipboard.writeText(String(id)),
+        },
+        duration: Number.POSITIVE_INFINITY,
+        closeButton: true,
       });
       try {
         await api.post("/payment/update-status", {
@@ -187,13 +206,22 @@ export const usePayment = () => {
         description: title,
 
         handler: async function (response: any) {
-          await verifyPayment(response, id, contentType);
+          await verifyPayment(response, id, contentType, title);
         },
         modal: {
           ondismiss: async () => {
             dispatch({
               type: "FAIL",
               payload: "Payment cancelled",
+            });
+            toast.error("Payment Cancelled", {
+              description: `If your money was deducted but content is locked, submit a ticket.\nContent Name: ${title}\nContent ID: ${id}\nOrder ID: ${order.id}`,
+              action: {
+                label: "Copy ID",
+                onClick: () => navigator.clipboard.writeText(String(id)),
+              },
+              duration: Number.POSITIVE_INFINITY,
+              closeButton: true,
             });
             try {
               await api.post("/payment/update-status", {

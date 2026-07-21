@@ -11,10 +11,10 @@ import TvDetailPage from "./components/TvDetailPage";
 import TvGrid from "./components/TvGrid";
 import { AdminProtectedRoute } from "./servicies/AdminProtectedRoute";
 import { RootLayout } from "./servicies/RootLayout";
-import React from "react";
 import { ReceiptPage } from './components/ReceiptPage'
 import WatchlistPage from "./components/WatchListPage";
 import HomePage from "./components/HomePage";
+import HelpCenterPage from "../src/components/HelpCenterPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +22,9 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/", element: <HomePage />
+      },
+      {
+        path: "/help", element: <HelpCenterPage />
       },
       {
         path: '/app',

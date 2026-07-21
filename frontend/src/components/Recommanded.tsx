@@ -1,9 +1,9 @@
-import { useRecommandation } from "@/hooks/useRecommanded";
+import { useRecommandation } from "../hooks/useRecommanded";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useRef } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Watchlist } from "./WatchlistButton";
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "../components/ui/skeleton";
 
 type Props = {
   id: string;

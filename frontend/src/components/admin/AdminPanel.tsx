@@ -3,7 +3,7 @@ import { UserAdminTable } from "./UserAdminTable";
 import { AdminTable } from "./AdminTable";
 import { AdminDiscloser } from "./AdminDiscloaser";
 import { BadgeCheckIcon, Bell, BellIcon, CreditCardIcon, LogOutIcon, Moon, Sun, X, Menu, Settings } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AdminMoviePurchase } from "./AdminMoviePurchase";
 import { AdminAnalytics } from "./AdminAnalystic";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -16,12 +16,21 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "../u
 import { FaChartPie, FaUser } from "react-icons/fa";
 import { MdMovie, MdSupportAgent } from "react-icons/md";
 import { AdminUpdateProfileDialog } from "./AdminUpdateProfileDialog";
+import { AdminTickets } from "./AdminTickets";
 
 export const AdminPanel = () => {
   const { admin, adminSignOut } = useAdminHook();
-  const [tab, setTab] = useState<"admin" | "users" | "mpurchases" | "analytics" | "helpNotify">("analytics");
+  const location = useLocation();
+  const [tab, setTab] = useState<"admin" | "users" | "mpurchases" | "analytics" | "helpNotify">(location.state?.tab || "analytics");
   const [isDark, setIsDark] = useState(true);
   const navigate = useNavigate();
+
+  // Handle location state updates if the user clicks the bell while already on the AdminPanel page
+  useEffect(() => {
+    if (location.state?.tab) {
+      setTab(location.state.tab);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (localStorage.getItem("theme") === "light") {
@@ -88,6 +97,9 @@ export const AdminPanel = () => {
                     </Button>
                     <Button variant={tab === "mpurchases" ? "default" : "ghost"} className="justify-start gap-3 w-full" onClick={() => setTab("mpurchases")}>
                       <MdMovie size={20} /> Purchases
+                    </Button>
+                    <Button variant={tab === "helpNotify" ? "default" : "ghost"} className="justify-start gap-3 w-full" onClick={() => setTab("helpNotify")}>
+                      <MdSupportAgent size={20} /> Tickets
                     </Button>
                   </div>
                 </div>
@@ -169,6 +181,8 @@ export const AdminPanel = () => {
             {tab === "users" && <UserAdminTable />}
             {tab === "mpurchases" && <AdminMoviePurchase />}
             {tab === "analytics" && <AdminAnalytics setTab={setTab} />}
+
+            {tab === "helpNotify" && <AdminTickets />}
           </div>
         </div>
       </div>

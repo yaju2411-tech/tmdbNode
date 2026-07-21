@@ -1,5 +1,6 @@
 import { FaChartPie, FaUser } from "react-icons/fa";
-import { MdMovie } from "react-icons/md";
+import { MdMovie, MdSupportAgent } from "react-icons/md";
+import { CreditCard } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export const AdminDiscloser = ({ setTab }: { setTab: (tab: any) => void }) => {
@@ -36,6 +37,16 @@ export const AdminDiscloser = ({ setTab }: { setTab: (tab: any) => void }) => {
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Purchase</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button onClick={() => { setTab("helpNotify"); }} className="focus:bg-zinc-800 p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+                <MdSupportAgent size={20} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Tickets</p>
             </TooltipContent>
           </Tooltip>
         </div>

@@ -1,8 +1,11 @@
 import User from "../../models/User.js";
 import Purchase from "../../models/Purchase.js";
+import HelpTicket from "../../models/HelpTicket.js";
 import AppError from "../../utils/appError.js";
 import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
+import axios from "axios";
+import nodemailer from "nodemailer";
 
 // Fetch all admin profiles
 export const getAdmins = async (req, res, next) => {
@@ -358,5 +361,253 @@ export const forceVerifyUser = async (req, res, next) => {
         });
     } catch (err) {
         next(err);
+    }
+};
+
+// Help Tickets Management
+export const getTickets = async (req, res, next) => {
+    try {
+        const tickets = await HelpTicket.find().sort({ createdAt: -1 });
+        return res.json({
+            success: true,
+            tickets
+        });
+    } catch (err) {
+        console.error("getTickets Error:", err);
+        return res.status(500).json({ success: false, message: err.message, error: err.stack });
+    }
+};
+
+export const updateTicketStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { status, adminNote } = req.body;
+
+        if (status === "resolved" && !adminNote) {
+            return res.status(400).json({ success: false, message: "An admin note is required to resolve a ticket." });
+        }
+
+        const updateData = { status };
+        if (adminNote !== undefined) {
+            updateData.adminNote = adminNote;
+        }
+
+        const ticket = await HelpTicket.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+
+        if (!ticket) {
+            return next(new AppError("Ticket not found", 404));
+        }
+
+        return res.json({
+            success: true,
+            ticket,
+            message: "Ticket status updated successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const deleteTicket = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const ticket = await HelpTicket.findByIdAndDelete(id);
+
+        if (!ticket) {
+            return next(new AppError("Ticket not found", 404));
+        }
+
+        return res.json({
+            success: true,
+            message: "Ticket deleted successfully"
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const grantManualAccess = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { contentId, contentType } = req.body;
+
+        if (!contentId || !contentType) {
+            return res.status(400).json({ success: false, message: "Content ID and Type are required." });
+        }
+
+        const ticket = await HelpTicket.findById(id);
+        if (!ticket) {
+            return next(new AppError("Ticket not found", 404));
+        }
+
+        const user = await User.findOne({ email: ticket.email });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found for this email." });
+        }
+
+        // Fetch details from TMDB to construct the Purchase record
+        const tmdbUrl = `https://api.themoviedb.org/3/${contentType}/${contentId}?api_key=${process.env.TMDB_API_KEY}`;
+        
+        let title, poster;
+        try {
+            const tmdbRes = await axios.get(tmdbUrl);
+            title = tmdbRes.data.title || tmdbRes.data.name;
+            poster = tmdbRes.data.poster_path;
+        } catch (err) {
+            return res.status(400).json({ success: false, message: "Invalid TMDB ID or unable to fetch content details." });
+        }
+
+        // Create the purchase record
+        const existingPurchase = await Purchase.findOne({ user: user._id, contentId, contentType });
+        
+        if (!existingPurchase) {
+            await Purchase.create({
+                user: user._id,
+                contentId,
+                title,
+                poster,
+                contentType,
+                amount: 0,
+                razorpayOrderId: "MANUAL_GRANT_" + Date.now(),
+                razorpayPaymentId: ticket.paymentId || "MANUAL_GRANT",
+                status: "paid"
+            });
+        }
+
+        // Mark ticket as resolved
+        ticket.status = "resolved";
+        ticket.adminNote = `Manually granted access to ${title} (${contentId}).`;
+        ticket.contentId = contentId;
+        ticket.contentType = contentType;
+        await ticket.save();
+
+        return res.json({
+            success: true,
+        message: `Successfully granted access to ${title} and resolved ticket.`
+        });
+    } catch (err) {
+        console.error("Grant Manual Access Error:", err);
+        next(err);
+    }
+};
+
+// Reset Payment (Start from Scratch)
+export const resetPayment = async (req, res, next) => {
+    try {
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        const user = await User.findOne({ email: ticket.email });
+        if (!user) return res.status(404).json({ success: false, message: "User not found for this email." });
+
+        if (!ticket.contentId || !ticket.contentType) {
+            return next(new AppError("Ticket missing content info", 400));
+        }
+
+        const deleted = await Purchase.findOneAndDelete({
+            user: user._id,
+            contentId: Number(ticket.contentId),
+            contentType: ticket.contentType,
+            status: "pending"
+        });
+
+        // Even if no pending purchase was found, the user is still free to retry!
+        ticket.adminNote = deleted 
+            ? "Pending payment deleted so user can retry from scratch."
+            : "No pending payment blocked the user, but ticket marked ready for retry.";
+
+        ticket.status = "in_progress";
+        await ticket.save();
+
+        return res.json({
+            success: true,
+            message: "Pending purchase deleted. User can now retry."
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Draft Email with Groq AI
+export const draftEmail = async (req, res, next) => {
+    try {
+        const { instruction } = req.body;
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        if (!process.env.GROQ_API) {
+            return next(new AppError("Groq API key not configured.", 500));
+        }
+
+        const prompt = `You are an expert customer support agent for TMDB (a streaming platform for movies and TV shows).
+Draft a professional, empathetic email to a user based on their ticket and the admin's instructions.
+User Name: ${ticket.name}
+Ticket Category: ${ticket.category}
+User Description: ${ticket.description}
+Admin Instruction: ${instruction}
+
+CRITICAL RULES:
+1. Write ONLY the final email body. No subject lines.
+2. DO NOT repeat, echo, or quote the "Admin Instruction" in your email. It is for your eyes only.
+3. Keep it clear, step-by-step if needed, and highly professional.`;
+
+        const groqRes = await axios.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            {
+                model: "llama-3.1-8b-instant",
+                messages: [{ role: "user", content: prompt }]
+            },
+            {
+                headers: {
+                    "Authorization": `Bearer ${process.env.GROQ_API}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        const draft = groqRes.data.choices[0].message.content.trim();
+
+        return res.json({ success: true, draft });
+    } catch (err) {
+        console.error("Groq AI Error:", err.response?.data || err.message);
+        next(new AppError("Failed to generate AI draft", 500));
+    }
+};
+
+// Send Email via Nodemailer
+export const sendEmail = async (req, res, next) => {
+    try {
+        const { subject, body } = req.body;
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        const transporter = nodemailer.createTransport({
+            host: process.env.EMAIL_HOST,
+            port: process.env.EMAIL_PORT,
+            secure: false,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        await transporter.sendMail({
+            from: `"TMDB Support" <${process.env.EMAIL_USER}>`,
+            to: ticket.email,
+            subject: subject || `Update on your Ticket #${ticket.ticketId}`,
+            text: body,
+        });
+
+        ticket.adminNote = `Email sent to user: \n${body}`;
+        await ticket.save();
+
+        return res.json({ success: true, message: "Email sent successfully" });
+    } catch (err) {
+        console.error("Nodemailer Error:", err);
+        next(new AppError("Failed to send email", 500));
     }
 };

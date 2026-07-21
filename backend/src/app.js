@@ -14,6 +14,7 @@ import watchlistRoutes from "./routes/watchlistRoutes.js";
 import cronRoutes from "./routes/cronRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import tmdbRoutes from "./routes/tmdbRoutes.js";
+import helpRoutes from "./routes/helpRoutes.js";
 import { errorHandler } from "./middleware/errorMiddlware.js";
 
 const app = express();
@@ -68,6 +69,8 @@ app.use("/api/cron", cronRoutes);
 app.use("/api/notifications", notificationRoutes);
 //tmdb proxy
 app.use("/api/tmdb", tmdbRoutes);
+//help center (public)
+app.use("/api/help", helpRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

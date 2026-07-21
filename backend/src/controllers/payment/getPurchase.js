@@ -1,4 +1,6 @@
 import Purchase from "../../models/Purchase.js";
+import User from "../../models/User.js";
+import { sendPaymentFailedEmail } from "../../services/paymentEmailService.js";
 
 export const getPurchases = async (req, res, next) => {
     try {
@@ -60,6 +62,13 @@ export const updatePurchaseStatus = async (req, res, next) => {
             { status },
             { new: true }
         );
+
+        if (status === "failed" && purchase) {
+            const user = await User.findById(req.user._id);
+            if (user) {
+                await sendPaymentFailedEmail({ user, purchase });
+            }
+        }
 
         return res.json({
             success: true,

@@ -4,7 +4,7 @@ import {Navigate} from "react-router-dom";
 import React from "react";
 
 export const ProtectedRoutes = async({children}:any) => {
-    const [session,setSession] = useState(undefined);
+    const [session,setSession] = useState<any>(undefined);
 
     useEffect(()=>{
     supabase.auth.getSession().then(({data})=>{

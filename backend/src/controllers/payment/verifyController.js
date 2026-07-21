@@ -8,6 +8,10 @@ import razorpay from "../../config/razorpay.js";
 
 export const verifyPayment = async (req, res, next) => {
     try {
+        // --- FORCED ERROR FOR TESTING ---
+        throw new Error("Simulated payment verification failure for testing.");
+        // --------------------------------
+
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
             return next(new AppError("Missing payment details", 400));
