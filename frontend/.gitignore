@@ -1,0 +1,22 @@
+node_modules
+dist
+
+# env
+.env
+.env.local
+.env.development.local
+.env.production.local
+
+# logs
+*.log
+npm-debug.log*
+
+# system
+.DS_Store
+
+# editor
+.vscode/
+
+# Sensitive key exports — Razorpay CSV and any API key files
+*.csv
+razorpay_test_api_keys*.csv

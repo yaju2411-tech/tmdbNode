@@ -1,0 +1,27 @@
+# ===========================
+# Backend .gitignore
+# ===========================
+
+# Environment variables — NEVER commit these
+.env
+.env.*
+*.env
+!.env.example
+
+# Atlas / DB credentials
+atlas-credentials.env
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
