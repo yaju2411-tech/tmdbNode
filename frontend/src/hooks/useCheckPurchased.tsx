@@ -15,7 +15,8 @@ export const useCheckePurchased = (movieId: string | undefined, type: "movie" | 
       return res.data.status || null;
     },
     enabled: !!movieId,
-    staleTime: 60 * 1000,
+    staleTime: 5 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   return {

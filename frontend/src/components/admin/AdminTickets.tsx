@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { api } from "../../servicies/api-client";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { CheckCircle2, Circle, Clock, Eye, Mail, MoreHorizontal, Search, Trash2, User, CreditCard, Key, RotateCcw } from "lucide-react";
+import { CheckCircle2, Circle, Clock, Eye, Mail, MoreHorizontal, Search, Trash2, User, CreditCard, Key, RotateCcw, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { AIEmailAssistant } from "./AIEmailAssistant";
@@ -30,6 +30,7 @@ export interface Ticket {
   contentName?: string;
   contentId?: string;
   contentType?: string;
+  purchaseStatus?: string;
   proofImage?: string;
   proofImages?: string[];
 }
@@ -57,17 +58,21 @@ export const AdminTickets = () => {
   const queryClient = useQueryClient();
   const [ticketType, setTicketType] = useState<"account" | "payment">("account");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-  
+
   // Modals
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isGrantAccessOpen, setIsGrantAccessOpen] = useState(false);
   const [isAIEmailOpen, setIsAIEmailOpen] = useState(false);
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [adminNote, setAdminNote] = useState("");
-  
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   // Grant Access State
   const [grantContentId, setGrantContentId] = useState("");
   const [grantContentType, setGrantContentType] = useState("movie");
@@ -79,6 +84,11 @@ export const AdminTickets = () => {
       return res.data.tickets;
     },
   });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, categoryFilter, ticketType, itemsPerPage]);
 
   const tickets = allTickets.filter((t: Ticket) => {
     const isPayment = t.category === "payment_deducted" || t.category === "content_not_showing";
@@ -96,17 +106,25 @@ export const AdminTickets = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage) || 1;
+  const paginatedTickets = filteredTickets.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, note }: { id: string; status: string; note?: string }) => {
       await api.put(`/admin/tickets/${id}/status`, { status, adminNote: note });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
-      queryClient.invalidateQueries({ queryKey: ["adminNotifications"] }); // Update bell icon
-      toast.success("Ticket status updated");
+      queryClient.invalidateQueries({ queryKey: ["adminNotifications"] });
+      toast.success(`Ticket status updated to '${variables.status.replace("_", " ")}'`);
       setIsDetailsOpen(false);
     },
-    onError: () => toast.error("Failed to update ticket status"),
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to update ticket status");
+    },
   });
 
   const deleteMutation = useMutation({
@@ -115,9 +133,11 @@ export const AdminTickets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
-      toast.success("Ticket deleted");
+      toast.success("Ticket deleted successfully");
     },
-    onError: () => toast.error("Failed to delete ticket"),
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to delete ticket");
+    },
   });
 
   const grantAccessMutation = useMutation({
@@ -141,13 +161,58 @@ export const AdminTickets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
-      toast.success("Pending payment reset successfully. User can retry.");
+      queryClient.invalidateQueries({ queryKey: ["purchase-status"] });
+      toast.success("Payment reset successfully. User can now buy again with the blue Buy button.");
       setIsDetailsOpen(false);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to reset payment");
     }
   });
+
+  const handleDeleteTicket = (ticket: Ticket) => {
+    // Verification Rule 1: Ticket MUST be resolved
+    if (ticket.status !== "resolved") {
+      toast.error("Cannot delete an unresolved ticket!", {
+        description: "Please progress the ticket to 'In Progress', resolve the issue, and add a resolution note before deleting."
+      });
+      return;
+    }
+
+    // Verification Rule 2: Resolution note MUST exist
+    if (!ticket.adminNote || ticket.adminNote.trim().length < 5) {
+      toast.error("Cannot delete ticket without an admin resolution note!", {
+        description: "Please add a note explaining how the issue was resolved."
+      });
+      setSelectedTicket(ticket);
+      setAdminNote(ticket.adminNote || "");
+      setIsDetailsOpen(true);
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete resolved ticket #${ticket.ticketId}?`)) {
+      deleteMutation.mutate(ticket._id);
+    }
+  };
+
+  const renderPurchaseStatusBadge = (status?: string) => {
+    switch (status) {
+      case "success":
+      case "paid":
+        return <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-medium">Success</Badge>;
+      case "pending":
+        return <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 font-medium">Pending</Badge>;
+      case "failed":
+      case "gateway_failed":
+        return <Badge className="bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30 font-medium">Failed</Badge>;
+      case "cancelled":
+        return <Badge className="bg-zinc-500/15 text-zinc-600 dark:text-zinc-400 border-zinc-500/30 font-medium">Cancelled</Badge>;
+      case "verification_failed":
+        return <Badge className="bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30 font-medium">Verify Failed</Badge>;
+      default:
+        return <Badge variant="outline" className="text-gray-400 border-gray-700 font-medium">N/A</Badge>;
+    }
+  };
 
   if (isLoading) {
     return <div className="p-8 text-center text-gray-500">Loading tickets...</div>;
@@ -208,7 +273,7 @@ export const AdminTickets = () => {
             <SelectTrigger className="w-[130px] bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-xs sm:text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-zinc-900/50 dark:text-white w-[130px]">
+            <SelectContent className="bg-white dark:bg-zinc-900 dark:text-white w-[130px]">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="in_progress">In Progress</SelectItem>
@@ -221,13 +286,13 @@ export const AdminTickets = () => {
               <SelectTrigger className="w-[160px] bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-xs sm:text-sm">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-zinc-900/50 dark:text-white ">
+              <SelectContent className="bg-white dark:bg-zinc-900 dark:text-white">
                 <SelectItem value="all">All Categories</SelectItem>
                 {Object.entries(categoryLabels)
                   .filter(([k]) => k !== "payment_deducted" && k !== "content_not_showing")
                   .map(([key, label]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           )}
@@ -237,7 +302,9 @@ export const AdminTickets = () => {
           </Badge>
         </div>
       </div>
-      <div className="rounded-md border border-gray-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
+
+      {/* Table Container */}
+      <div className="rounded-md border border-gray-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950 shadow-sm">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-zinc-900/50">
             <TableRow>
@@ -246,26 +313,26 @@ export const AdminTickets = () => {
               {ticketType === "payment" ? (
                 <>
                   <TableHead>Content Name</TableHead>
-                  <TableHead>Payment ID</TableHead>
+                  <TableHead>Purchase Status</TableHead>
                 </>
               ) : (
                 <TableHead>Category</TableHead>
               )}
-              <TableHead>Status</TableHead>
+              <TableHead>Ticket Status</TableHead>
               <TableHead className="text-right">{ticketType === "account" ? "Date" : "Actions"}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTickets.length === 0 ? (
+            {paginatedTickets.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
+                <TableCell colSpan={6} className="h-28 text-center text-gray-500">
                   No tickets found matching your filters.
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTickets.map((ticket: Ticket) => (
-                <TableRow key={ticket._id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/50">
-                  <TableCell className="font-mono text-xs">{ticket.ticketId}</TableCell>
+              paginatedTickets.map((ticket: Ticket) => (
+                <TableRow key={ticket._id} className="hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors">
+                  <TableCell className="font-mono text-xs font-semibold">{ticket.ticketId}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{ticket.name}</span>
@@ -279,7 +346,7 @@ export const AdminTickets = () => {
                         <span className="font-medium text-sm">{ticket.contentName || "Unknown"}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono text-xs">{ticket.paymentId || "N/A"}</span>
+                        {renderPurchaseStatusBadge(ticket.purchaseStatus)}
                       </TableCell>
                     </>
                   ) : (
@@ -299,14 +366,14 @@ export const AdminTickets = () => {
                       <TableCell className="text-right text-sm text-gray-500 dark:text-gray-400">
                         {format(new Date(ticket.createdAt), "MMM d, yyyy")}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100">
+                          <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => {
                               setSelectedTicket(ticket);
@@ -319,22 +386,25 @@ export const AdminTickets = () => {
                               <Mail className="mr-2 h-4 w-4" /> Email User
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "open" })}>
-                              <Circle className="mr-2 h-4 w-4 text-red-500" /> Mark as Open
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" })}>
-                              <Clock className="mr-2 h-4 w-4 text-blue-500" /> Mark as In Progress
-                            </DropdownMenuItem>
+                            {ticket.status === "open" && (
+                              <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" })}>
+                                <Clock className="mr-2 h-4 w-4 text-blue-500" /> Move to In Progress
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => {
                               setSelectedTicket(ticket);
                               setAdminNote(ticket.adminNote || "");
                               setIsDetailsOpen(true);
                             }}>
-                              <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Mark as Resolved
+                              <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Resolve Ticket
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => deleteMutation.mutate(ticket._id)}>
+                            <DropdownMenuItem 
+                              className={ticket.status === "resolved" ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-400 dark:text-zinc-600"} 
+                              onClick={() => handleDeleteTicket(ticket)}
+                            >
                               <Trash2 className="mr-2 h-4 w-4" /> Delete Ticket
+                              {ticket.status !== "resolved" && <AlertTriangle className="ml-auto h-3 w-3 text-amber-500" />}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -348,7 +418,7 @@ export const AdminTickets = () => {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100">
+                        <DropdownMenuContent align="end" className="w-52 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-gray-100">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => {
                             setSelectedTicket(ticket);
@@ -358,6 +428,9 @@ export const AdminTickets = () => {
                             <Eye className="mr-2 h-4 w-4" /> View Details
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
+                            if (ticket.status === "open") {
+                              updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" });
+                            }
                             setGrantContentId(ticket.contentId || "");
                             setGrantContentType(ticket.contentType || "movie");
                             setSelectedTicket(ticket);
@@ -366,7 +439,7 @@ export const AdminTickets = () => {
                             <Key className="mr-2 h-4 w-4 text-yellow-500" /> Grant Access
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
-                            if (confirm("Are you sure you want to reset this user's payment? This will delete their pending order so they can restart from scratch.")) {
+                            if (confirm("Are you sure you want to reset this user's payment? This will delete their pending/failed order so they can restart from scratch.")) {
                               resetPaymentMutation.mutate(ticket._id);
                             }
                           }}>
@@ -376,22 +449,25 @@ export const AdminTickets = () => {
                             <Mail className="mr-2 h-4 w-4" /> Email User
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "open" })}>
-                            <Circle className="mr-2 h-4 w-4 text-red-500" /> Mark as Open
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" })}>
-                            <Clock className="mr-2 h-4 w-4 text-blue-500" /> Mark as In Progress
-                          </DropdownMenuItem>
+                          {ticket.status === "open" && (
+                            <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" })}>
+                              <Clock className="mr-2 h-4 w-4 text-blue-500" /> Move to In Progress
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => {
                             setSelectedTicket(ticket);
                             setAdminNote(ticket.adminNote || "");
                             setIsDetailsOpen(true);
                           }}>
-                            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Mark as Resolved
+                            <CheckCircle2 className="mr-2 h-4 w-4 text-green-500" /> Resolve Ticket
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => deleteMutation.mutate(ticket._id)}>
+                          <DropdownMenuItem 
+                            className={ticket.status === "resolved" ? "text-red-600 dark:text-red-400 font-semibold" : "text-gray-400 dark:text-zinc-600"} 
+                            onClick={() => handleDeleteTicket(ticket)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" /> Delete Ticket
+                            {ticket.status !== "resolved" && <AlertTriangle className="ml-auto h-3 w-3 text-amber-500" />}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -402,6 +478,57 @@ export const AdminTickets = () => {
             )}
           </TableBody>
         </Table>
+
+        {/* Pagination Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-900/30">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{filteredTickets.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredTickets.length)}</span> of{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">{filteredTickets.length}</span> tickets
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500 dark:text-gray-400">Rows per page:</span>
+              <Select value={String(itemsPerPage)} onValueChange={(val) => { setItemsPerPage(Number(val)); setCurrentPage(1); }}>
+                <SelectTrigger className="h-8 w-[70px] text-xs bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-zinc-900 text-xs">
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              <span className="text-xs text-gray-500 dark:text-gray-400 px-2 font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Ticket Details Dialog */}
@@ -433,16 +560,22 @@ export const AdminTickets = () => {
                   <>
                     <div>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Content Name</p>
-                      <p className="text-sm font-medium">{selectedTicket.contentName || "N/A"}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Payment ID</p>
-                      <p className="text-sm font-mono">{selectedTicket.paymentId || "N/A"}</p>
+                      <p className="text-sm font-medium">{selectedTicket.contentName || "N/A"} {selectedTicket.contentId ? `(ID: ${selectedTicket.contentId})` : ""}</p>
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Order ID</p>
-                      <p className="text-sm font-mono">{selectedTicket.orderId || "N/A"}</p>
+                      <p className="text-sm font-mono text-amber-500 font-semibold">{selectedTicket.orderId || "N/A"}</p>
                     </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Payment ID</p>
+                      <p className="text-sm font-mono text-emerald-500 font-semibold">{selectedTicket.paymentId || "N/A"}</p>
+                    </div>
+                    {selectedTicket.receiptId && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Receipt ID</p>
+                        <p className="text-sm font-mono text-blue-500 font-semibold">{selectedTicket.receiptId}</p>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div>
@@ -491,9 +624,9 @@ export const AdminTickets = () => {
               {selectedTicket.status === "resolved" ? (
                 <div>
                   <p className="text-xs font-semibold text-green-600 dark:text-green-500 uppercase tracking-wider mb-2 flex items-center">
-                    <CheckCircle2 className="w-3 h-3 mr-1" /> Resolution Note
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Resolution Note
                   </p>
-                  <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-md border border-green-200 dark:border-green-900/30 text-sm whitespace-pre-wrap text-green-900 dark:text-green-100">
+                  <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-md border border-green-200 dark:border-green-900/30 text-sm whitespace-pre-wrap text-green-900 dark:text-green-100 font-medium">
                     {selectedTicket.adminNote || "No resolution note provided."}
                   </div>
                 </div>
@@ -506,7 +639,9 @@ export const AdminTickets = () => {
                     onChange={(e) => setAdminNote(e.target.value)}
                     className="min-h-[100px] bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 focus-visible:ring-1"
                   />
-                  <p className="text-xs text-gray-400 mt-1.5">A note is required before marking this ticket as resolved.</p>
+                  <p className="text-xs text-amber-500 dark:text-amber-400 mt-1.5 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" /> A resolution note (min 5 chars) is required before resolving or deleting this ticket.
+                  </p>
                 </div>
               )}
             </div>
@@ -514,15 +649,18 @@ export const AdminTickets = () => {
 
           <DialogFooter className="flex flex-col sm:flex-row items-center gap-2 sm:justify-between mt-4">
             <Button variant="outline" className="w-full sm:w-auto" onClick={() => setIsDetailsOpen(false)}>Close</Button>
-            
+
             <div className="flex gap-2 w-full sm:w-auto">
               {ticketType === "payment" && selectedTicket?.status !== "resolved" && (
-                <Button 
+                <Button
                   onClick={() => {
+                    if (selectedTicket?.status === "open") {
+                      updateStatusMutation.mutate({ id: selectedTicket._id, status: "in_progress" });
+                    }
                     setGrantContentId(selectedTicket?.contentId || "");
                     setGrantContentType(selectedTicket?.contentType || "movie");
                     setIsGrantAccessOpen(true);
-                  }} 
+                  }}
                   className="w-full sm:w-auto bg-[#E50914] hover:bg-red-700 text-white"
                 >
                   <Key className="w-4 h-4 mr-2" />
@@ -531,11 +669,23 @@ export const AdminTickets = () => {
               )}
               {selectedTicket && selectedTicket.status !== "resolved" && (
                 <Button
-                  disabled={!adminNote.trim() || updateStatusMutation.isPending}
+                  disabled={!adminNote.trim() || adminNote.trim().length < 5 || updateStatusMutation.isPending}
                   onClick={() => updateStatusMutation.mutate({ id: selectedTicket._id, status: "resolved", note: adminNote.trim() })}
                   className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
                 >
                   {updateStatusMutation.isPending ? "Resolving..." : "Resolve Ticket"}
+                </Button>
+              )}
+              {selectedTicket && selectedTicket.status === "resolved" && (
+                <Button
+                  onClick={() => {
+                    setIsDetailsOpen(false);
+                    handleDeleteTicket(selectedTicket);
+                  }}
+                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-semibold"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Ticket
                 </Button>
               )}
             </div>
@@ -545,7 +695,7 @@ export const AdminTickets = () => {
 
       {/* Grant Access Dialog */}
       <Dialog open={isGrantAccessOpen} onOpenChange={setIsGrantAccessOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 border-gray-200 dark:border-zinc-800">
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-900 dark:text-white border-gray-200 dark:border-zinc-800">
           <DialogHeader>
             <DialogTitle>Grant Manual Access</DialogTitle>
             <DialogDescription>
@@ -555,10 +705,10 @@ export const AdminTickets = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Content ID (TMDB)</label>
-              <Input 
-                value={grantContentId} 
+              <Input
+                value={grantContentId}
                 onChange={(e) => setGrantContentId(e.target.value)}
-                placeholder="e.g., 1228710" 
+                placeholder="e.g., 1228710"
                 className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800"
               />
             </div>
@@ -568,7 +718,7 @@ export const AdminTickets = () => {
                 <SelectTrigger className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-zinc-900/50 dark:text-white">
+                <SelectContent className="bg-white dark:bg-zinc-900 dark:text-white">
                   <SelectItem value="movie">Movie</SelectItem>
                   <SelectItem value="tv">TV Show</SelectItem>
                 </SelectContent>
@@ -577,14 +727,14 @@ export const AdminTickets = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsGrantAccessOpen(false)}>Cancel</Button>
-            <Button 
+            <Button
               onClick={() => {
                 if (!grantContentId.trim()) return toast.error("Content ID is required");
                 if (selectedTicket) {
-                  grantAccessMutation.mutate({ 
-                    id: selectedTicket._id, 
-                    contentId: grantContentId, 
-                    contentType: grantContentType 
+                  grantAccessMutation.mutate({
+                    id: selectedTicket._id,
+                    contentId: grantContentId,
+                    contentType: grantContentType
                   });
                 }
               }}
@@ -599,10 +749,10 @@ export const AdminTickets = () => {
 
       {/* AI Email Assistant Dialog */}
       {selectedTicket && (
-        <AIEmailAssistant 
-          isOpen={isAIEmailOpen} 
-          onClose={() => setIsAIEmailOpen(false)} 
-          ticket={selectedTicket} 
+        <AIEmailAssistant
+          isOpen={isAIEmailOpen}
+          onClose={() => setIsAIEmailOpen(false)}
+          ticket={selectedTicket}
         />
       )}
     </div>

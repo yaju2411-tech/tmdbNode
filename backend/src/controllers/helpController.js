@@ -1,9 +1,16 @@
 import axios from "axios";
 import HelpTicket from "../models/HelpTicket.js";
+import User from "../models/User.js";
+import Purchase from "../models/Purchase.js";
+import Receipt from "../models/Receipt.js";
 import { sendTicketConfirmation, sendAdminTicketAlert } from "../services/emailService.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 
-const SYSTEM_PROMPT = `You are a friendly and professional support assistant for TMDB — a streaming platform where users can browse, purchase, and watch movies and TV shows.
+const getSystemPrompt = () => {
+  const supportEmail = process.env.SUPPORT_EMAIL;
+  const supportPhone = process.env.SUPPORT_PHONE;
+
+  return `You are a friendly and professional support assistant for TMDB — a streaming platform where users can browse, purchase, and watch movies and TV shows.
 
 Your job is to help users resolve their account and app problems quickly. Always be concise, clear, and helpful.
 
@@ -22,11 +29,12 @@ WHAT ADMINS CAN DO (tell users to contact support if needed):
 - Edit user name, email, or avatar
 - View purchase status and investigate payment issues
 - Delete accounts
-- want to contact give them contact info like emial:yaju2411@gmail.com and contact number: +91 9664796515
+- If the user asks for direct contact info, provide support email: ${supportEmail} and contact number: ${supportPhone}.
 
 TONE: Friendly, concise, no jargon. If you cannot solve the issue, tell the user to submit a support ticket using the form available on this page.
 
 DO NOT make up features that don't exist. DO NOT ask for passwords. Keep responses under 200 words.`;
+};
 
 // POST /api/help/ai-chat
 export const aiChat = async (req, res, next) => {
@@ -34,20 +42,20 @@ export const aiChat = async (req, res, next) => {
     const { messages } = req.body;
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      return res.status(400).json({ success: false, message: "Messages are required" });
+      return next(new AppError("Messages are required", 400));
     }
 
-    // Sanitize messages
-    const sanitized = messages.map((m) => ({
+    // Sanitize messages — cap at latest 20 messages and 1000 characters per message
+    const sanitized = messages.slice(-20).map((m) => ({
       role: m.role === "user" ? "user" : "assistant",
-      content: String(m.content).slice(0, 1000), // cap at 1000 chars
+      content: String(m.content).slice(0, 1000),
     }));
 
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         model: "llama-3.3-70b-versatile",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...sanitized],
+        messages: [{ role: "system", content: getSystemPrompt() }, ...sanitized],
         max_tokens: 400,
         temperature: 0.5,
       },
@@ -95,22 +103,65 @@ export const submitTicket = async (req, res, next) => {
         proofImagesUrls = uploadResults.map(result => result.secure_url);
       } catch (err) {
         console.error("Cloudinary upload failed:", err);
+        return next(new AppError("Failed to upload payment proof images. Please try again.", 400));
+      }
+    }
+
+    const userEmail = email.trim().toLowerCase();
+    let resolvedOrderId = orderId ? orderId.trim() : null;
+    let resolvedPaymentId = paymentId ? paymentId.trim() : null;
+    let resolvedReceiptId = receiptId ? receiptId.trim() : null;
+    let resolvedContentName = contentName ? contentName.trim() : null;
+    const resolvedContentId = contentId ? contentId.trim() : null;
+    const resolvedContentType = contentType || "movie";
+
+    // Auto-lookup purchase in DB if missing orderId/paymentId/contentName
+    if (userEmail && resolvedContentId) {
+      try {
+        const foundUser = await User.findOne({ email: userEmail });
+        if (foundUser) {
+          const foundPurchase = await Purchase.findOne({
+            user: foundUser._id,
+            contentId: Number(resolvedContentId),
+            contentType: resolvedContentType,
+          }).sort({ createdAt: -1 });
+
+          if (foundPurchase) {
+            if (!resolvedOrderId || resolvedOrderId === "N/A") {
+              resolvedOrderId = foundPurchase.razorpayOrderId || null;
+            }
+            if (!resolvedPaymentId || resolvedPaymentId === "N/A") {
+              resolvedPaymentId = foundPurchase.razorpayPaymentId || null;
+            }
+            if (!resolvedContentName) {
+              resolvedContentName = foundPurchase.title || null;
+            }
+
+            const foundReceipt = await Receipt.findOne({ purchase: foundPurchase._id });
+            if (foundReceipt) {
+              if (!resolvedReceiptId) resolvedReceiptId = foundReceipt.receiptNumber || null;
+              if (!resolvedPaymentId || resolvedPaymentId === "N/A") resolvedPaymentId = foundReceipt.razorpayPaymentId || null;
+            }
+          }
+        }
+      } catch (lookupErr) {
+        console.error("Purchase auto-lookup error in submitTicket:", lookupErr);
       }
     }
 
     const ticketData = {
       name: name.trim(),
-      email: email.trim().toLowerCase(),
+      email: userEmail,
       category,
       description: description.trim(),
     };
 
-    if (orderId) ticketData.orderId = orderId.trim();
-    if (paymentId) ticketData.paymentId = paymentId.trim();
-    if (receiptId) ticketData.receiptId = receiptId.trim();
-    if (contentName) ticketData.contentName = contentName.trim();
-    if (contentId) ticketData.contentId = contentId.trim();
-    if (contentType) ticketData.contentType = contentType;
+    if (resolvedOrderId) ticketData.orderId = resolvedOrderId;
+    if (resolvedPaymentId) ticketData.paymentId = resolvedPaymentId;
+    if (resolvedReceiptId) ticketData.receiptId = resolvedReceiptId;
+    if (resolvedContentName) ticketData.contentName = resolvedContentName;
+    if (resolvedContentId) ticketData.contentId = resolvedContentId;
+    if (resolvedContentType) ticketData.contentType = resolvedContentType;
     if (proofImagesUrls.length > 0) ticketData.proofImages = proofImagesUrls;
 
     const ticket = await HelpTicket.create(ticketData);
@@ -128,10 +179,6 @@ export const submitTicket = async (req, res, next) => {
     });
   } catch (err) {
     console.error("Submit Ticket Error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "An error occurred while submitting your ticket. Please try again later.",
-      error: err.stack
-    });
+    next(err);
   }
 };

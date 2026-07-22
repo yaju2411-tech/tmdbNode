@@ -369,14 +369,62 @@ export const forceVerifyUser = async (req, res, next) => {
 // Help Tickets Management
 export const getTickets = async (req, res, next) => {
     try {
-        const tickets = await HelpTicket.find().sort({ createdAt: -1 });
+        const rawTickets = await HelpTicket.find().sort({ createdAt: -1 });
+
+        const tickets = await Promise.all(
+            rawTickets.map(async (t) => {
+                const doc = t.toObject();
+                // If orderId, paymentId, contentName, or purchaseStatus is missing, check Purchase collection
+                if (doc.email && doc.contentId) {
+                    try {
+                        const user = await User.findOne({ email: doc.email.trim().toLowerCase() });
+                        if (user) {
+                            const purchase = await Purchase.findOne({
+                                user: user._id,
+                                contentId: Number(doc.contentId),
+                                contentType: doc.contentType || "movie"
+                            }).sort({ createdAt: -1 });
+
+                            if (purchase) {
+                                doc.purchaseStatus = purchase.status === "paid" ? "success" : purchase.status;
+                                let updated = false;
+                                if ((!doc.orderId || doc.orderId === "N/A") && purchase.razorpayOrderId) {
+                                    doc.orderId = purchase.razorpayOrderId;
+                                    t.orderId = purchase.razorpayOrderId;
+                                    updated = true;
+                                }
+                                if ((!doc.paymentId || doc.paymentId === "N/A") && purchase.razorpayPaymentId) {
+                                    doc.paymentId = purchase.razorpayPaymentId;
+                                    t.paymentId = purchase.razorpayPaymentId;
+                                    updated = true;
+                                }
+                                if (!doc.contentName && purchase.title) {
+                                    doc.contentName = purchase.title;
+                                    t.contentName = purchase.title;
+                                    updated = true;
+                                }
+                                if (updated) {
+                                    await t.save().catch(() => {});
+                                }
+                            } else {
+                                doc.purchaseStatus = "no_record";
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error backfilling ticket details:", e);
+                    }
+                }
+                return doc;
+            })
+        );
+
         return res.json({
             success: true,
             tickets
         });
     } catch (err) {
         console.error("getTickets Error:", err);
-        return res.status(500).json({ success: false, message: err.message, error: err.stack });
+        next(err);
     }
 };
 
@@ -385,13 +433,26 @@ export const updateTicketStatus = async (req, res, next) => {
         const { id } = req.params;
         const { status, adminNote } = req.body;
 
-        if (status === "resolved" && !adminNote) {
-            return res.status(400).json({ success: false, message: "An admin note is required to resolve a ticket." });
+        const ALLOWED_STATUSES = ["open", "in_progress", "resolved", "closed"];
+        if (!status || !ALLOWED_STATUSES.includes(status)) {
+            return next(new AppError("Invalid or missing ticket status.", 400));
+        }
+
+        const existingTicket = await HelpTicket.findById(id);
+        if (!existingTicket) {
+            return next(new AppError("Ticket not found", 404));
+        }
+
+        if (status === "resolved") {
+            const noteToCheck = adminNote !== undefined ? adminNote : existingTicket.adminNote;
+            if (!noteToCheck || noteToCheck.trim().length < 5) {
+                return next(new AppError("A resolution note (at least 5 characters) explaining how the issue was solved is required to resolve a ticket.", 400));
+            }
         }
 
         const updateData = { status };
         if (adminNote !== undefined) {
-            updateData.adminNote = adminNote;
+            updateData.adminNote = adminNote.trim();
         }
 
         const ticket = await HelpTicket.findByIdAndUpdate(
@@ -400,14 +461,10 @@ export const updateTicketStatus = async (req, res, next) => {
             { new: true, runValidators: true }
         );
 
-        if (!ticket) {
-            return next(new AppError("Ticket not found", 404));
-        }
-
         return res.json({
             success: true,
             ticket,
-            message: "Ticket status updated successfully"
+            message: `Ticket status updated to '${status.replace("_", " ")}'`
         });
     } catch (err) {
         next(err);
@@ -417,11 +474,23 @@ export const updateTicketStatus = async (req, res, next) => {
 export const deleteTicket = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const ticket = await HelpTicket.findByIdAndDelete(id);
+        const ticket = await HelpTicket.findById(id);
 
         if (!ticket) {
             return next(new AppError("Ticket not found", 404));
         }
+
+        // Rule 1: Ticket MUST be in 'resolved' status before deleting
+        if (ticket.status !== "resolved") {
+            return next(new AppError("Cannot delete an unresolved ticket. Please first progress the ticket to 'Resolved' with a resolution note.", 400));
+        }
+
+        // Rule 2: Ticket MUST have a resolution note
+        if (!ticket.adminNote || ticket.adminNote.trim().length < 5) {
+            return next(new AppError("Cannot delete ticket without an admin resolution note explaining how the issue was solved.", 400));
+        }
+
+        await HelpTicket.findByIdAndDelete(id);
 
         return res.json({
             success: true,
@@ -438,7 +507,11 @@ export const grantManualAccess = async (req, res, next) => {
         const { contentId, contentType } = req.body;
 
         if (!contentId || !contentType) {
-            return res.status(400).json({ success: false, message: "Content ID and Type are required." });
+            return next(new AppError("Content ID and Type are required.", 400));
+        }
+
+        if (!["movie", "tv"].includes(contentType)) {
+            return next(new AppError("Invalid Content Type. Must be 'movie' or 'tv'.", 400));
         }
 
         const ticket = await HelpTicket.findById(id);
@@ -448,7 +521,7 @@ export const grantManualAccess = async (req, res, next) => {
 
         const user = await User.findOne({ email: ticket.email });
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found for this email." });
+            return next(new AppError("User not found for this email.", 404));
         }
 
         // Fetch details from TMDB to construct the Purchase record
@@ -456,11 +529,11 @@ export const grantManualAccess = async (req, res, next) => {
         
         let title, poster;
         try {
-            const tmdbRes = await axios.get(tmdbUrl);
+            const tmdbRes = await axios.get(tmdbUrl, { timeout: 10000 });
             title = tmdbRes.data.title || tmdbRes.data.name;
             poster = tmdbRes.data.poster_path;
         } catch (err) {
-            return res.status(400).json({ success: false, message: "Invalid TMDB ID or unable to fetch content details." });
+            return next(new AppError("Invalid TMDB ID or unable to fetch content details.", 400));
         }
 
         const receiptNo = reciptGenerator();
@@ -514,7 +587,7 @@ export const grantManualAccess = async (req, res, next) => {
 
         return res.json({
             success: true,
-        message: `Successfully granted access to ${title} and resolved ticket.`
+            message: `Successfully granted access to ${title} and resolved ticket.`
         });
     } catch (err) {
         console.error("Grant Manual Access Error:", err);
@@ -528,31 +601,40 @@ export const resetPayment = async (req, res, next) => {
         const ticket = await HelpTicket.findById(req.params.id);
         if (!ticket) return next(new AppError("Ticket not found", 404));
 
-        const user = await User.findOne({ email: ticket.email });
-        if (!user) return res.status(404).json({ success: false, message: "User not found for this email." });
+        const user = await User.findOne({ email: ticket.email.trim().toLowerCase() });
+        if (!user) return next(new AppError("User not found for this email.", 404));
 
         if (!ticket.contentId || !ticket.contentType) {
             return next(new AppError("Ticket missing content info", 400));
         }
 
-        const deleted = await Purchase.findOneAndDelete({
+        const rawContentId = ticket.contentId;
+        const numContentId = Number(rawContentId);
+        const contentIdFilter = !isNaN(numContentId)
+            ? { $in: [numContentId, String(rawContentId)] }
+            : rawContentId;
+
+        // Delete ALL non-paid purchase records (pending, failed, cancelled, etc.) for this user & content
+        const deleteResult = await Purchase.deleteMany({
             user: user._id,
-            contentId: Number(ticket.contentId),
+            contentId: contentIdFilter,
             contentType: ticket.contentType,
-            status: "pending"
+            status: { $ne: "paid" }
         });
 
-        // Even if no pending purchase was found, the user is still free to retry!
-        ticket.adminNote = deleted 
-            ? "Pending payment deleted so user can retry from scratch."
-            : "No pending payment blocked the user, but ticket marked ready for retry.";
+        const count = deleteResult.deletedCount || 0;
+
+        ticket.adminNote = count > 0 
+            ? `Reset payment: Deleted ${count} non-paid purchase record(s) (pending/failed/cancelled). User can now retry with the blue Buy button.`
+            : "Reset payment: No active non-paid purchase record found, state is ready for retry with blue Buy button.";
 
         ticket.status = "in_progress";
         await ticket.save();
 
         return res.json({
             success: true,
-            message: "Pending purchase deleted. User can now retry."
+            message: `Payment reset successfully. Deleted ${count} record(s). User can now retry with the blue Buy button.`,
+            deletedCount: count
         });
     } catch (err) {
         next(err);
@@ -589,6 +671,7 @@ CRITICAL RULES:
                 messages: [{ role: "user", content: prompt }]
             },
             {
+                timeout: 15000,
                 headers: {
                     "Authorization": `Bearer ${process.env.GROQ_API}`,
                     "Content-Type": "application/json"
@@ -612,10 +695,14 @@ export const sendEmail = async (req, res, next) => {
         const ticket = await HelpTicket.findById(req.params.id);
         if (!ticket) return next(new AppError("Ticket not found", 404));
 
+        const emailPort = Number(process.env.EMAIL_PORT) || 587;
         const transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
-            port: process.env.EMAIL_PORT,
-            secure: false,
+            port: emailPort,
+            secure: emailPort === 465,
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
             auth: {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,

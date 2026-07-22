@@ -36,8 +36,9 @@ export const HelpChat = ({ onSwitchToTicket }: { onSwitchToTicket: () => void })
     setIsLoading(true);
 
     try {
+      const fullHistory = [...messages, userMessage];
       const response = await api.post("/help/ai-chat", {
-        messages: [...messages, userMessage],
+        messages: fullHistory.slice(-15),
       });
 
       if (response.data.success) {

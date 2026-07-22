@@ -1,8 +1,7 @@
 import { useParams, useNavigate, useOutletContext } from "react-router-dom";
 import useMovieDetail, { useMovieDetailCast } from "../hooks/useMovieDetail";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePayment } from "../hooks/usePaymentHook";
-import React from "react";
 import { Button } from "./ui/button";
 import { useCheckePurchased } from "../hooks/useCheckPurchased";
 import { useRealtimeNotifications } from "../hooks/useRealtimeNotification";
@@ -11,9 +10,9 @@ import { toast } from "sonner";
 import { Watchlist } from "./WatchlistButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { usePaymentId } from "../hooks/usePaymentId";
-import { Share2, QrCode, Copy } from "lucide-react";
 import { ShareModal } from "./ShareModal";
-import { reciptGenerator } from "../utils/receiptNoGenerator";
+import { ReportPendingModal } from "./ReportPendingModal";
+import { ReportButton } from "./ReportButton";
 
 interface Props {
     onMoreDetail: () => void;
@@ -28,6 +27,7 @@ export const MovieTrailer = ({ onMoreDetail }: Props) => {
     const { status, loading: purchaseLoading } = useCheckePurchased(id, "movie");
     const { user, watchlist } = useOutletContext<any>();
     const [shareOpen, setShareOpen] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
     const userId = user?.id;
 
     useRealtimeNotifications(userId, (payload: any) => {
@@ -40,7 +40,7 @@ export const MovieTrailer = ({ onMoreDetail }: Props) => {
             },
         });
     });
-    const { paymentId, receiptNumber, loading: paymentLoading } = usePaymentId(String(id), "movie");
+    const { orderId, paymentId, receiptNumber, loading: paymentLoading } = usePaymentId(String(id), "movie");
     const rating = movie?.vote_average || 0;
     const amount = useMemo(() => {
         return rating < 3 ? 200 : 500;
@@ -128,27 +128,42 @@ export const MovieTrailer = ({ onMoreDetail }: Props) => {
                                             Watch Now
                                         </Button>
                                     ) : status === "pending" ? (
-                                        <Button disabled className="bg-yellow-600 text-white font-semibold">
-                                            Payment Processing (Pending)
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button disabled className="bg-yellow-600 text-white font-semibold cursor-not-allowed">
+                                                Payment Processing (Pending)
+                                            </Button>
+                                            <ReportButton onClick={() => setReportOpen(true)} />
+                                        </div>
                                     ) : status === "verification_failed" ? (
-                                        <Button disabled className="bg-orange-500 text-white font-semibold">
-                                            Verification Failed
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button disabled className="bg-orange-500 text-white font-semibold cursor-not-allowed">
+                                                Verification Failed
+                                            </Button>
+                                            <ReportButton onClick={() => setReportOpen(true)} />
+                                        </div>
                                     ) : status === "gateway_failed" ? (
-                                        <Button onClick={handleRetry} className="bg-red-600 text-white font-semibold hover:bg-red-700">
-                                            Gateway Failed - Retry
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button onClick={handleRetry} className="bg-red-600 text-white font-semibold hover:bg-red-700">
+                                                Gateway Failed - Retry
+                                            </Button>
+                                            <ReportButton onClick={() => setReportOpen(true)} />
+                                        </div>
                                     ) : status === "cancelled" ? (
-                                        <Button onClick={handlePayment}
-                                            className="bg-gray-500 text-zinc-100 hover:bg-gray-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                                            Cancelled - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button onClick={handlePayment}
+                                                className="bg-gray-500 text-zinc-100 hover:bg-gray-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
+                                                Cancelled - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
+                                            </Button>
+                                            <ReportButton onClick={() => setReportOpen(true)} />
+                                        </div>
                                     ) : status === "failed" ? (
-                                        <Button onClick={handlePayment}
-                                            className="bg-red-800 text-zinc-100 hover:bg-red-900 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                                            Failed - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
-                                        </Button>
+                                        <div className="flex items-center gap-2">
+                                            <Button onClick={handlePayment}
+                                                className="bg-red-800 text-zinc-100 hover:bg-red-900 hover:text-white py-2 rounded-md transition-colors font-semibold">
+                                                Failed - Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
+                                            </Button>
+                                            <ReportButton onClick={() => setReportOpen(true)} />
+                                        </div>
                                     ) : status === "manual_access" ? (
                                         <Button className="bg-green-600 text-white font-semibold">
                                             Watch Now (Manual Access)
@@ -159,6 +174,16 @@ export const MovieTrailer = ({ onMoreDetail }: Props) => {
                                             Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
                                         </Button>
                                     )}
+                                    <ReportPendingModal
+                                        open={reportOpen}
+                                        onOpenChange={setReportOpen}
+                                        contentId={movie.id}
+                                        contentTitle={movie.title}
+                                        contentType="movie"
+                                        orderId={orderId || undefined}
+                                        paymentId={paymentId || undefined}
+                                        user={user}
+                                    />
                                     {
                                         (status === "success" || status === "manual_access") && (
                                             <TooltipProvider>

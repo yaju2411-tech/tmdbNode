@@ -3,26 +3,31 @@ import verifySignature from "../../utils/verifySignature.js";
 import Purchase from "../../models/Purchase.js";
 import Receipt from "../../models/Receipt.js";
 import generateReceiptNumber from "../../utils/generateReceiptNumber.js";
-import { sendPaymentEmail } from "../../services/paymentEmailService.js";
+import { sendPaymentEmail, sendPaymentFailedEmail } from "../../services/paymentEmailService.js";
 import razorpay from "../../config/razorpay.js";
 
 export const verifyPayment = async (req, res, next) => {
     try {
-        // --- FORCED ERROR FOR TESTING ---
-        throw new Error("Simulated payment verification failure for testing.");
-        // --------------------------------
-
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
             return next(new AppError("Missing payment details", 400));
         }
-        //verifySignature
+
+        // Verify Razorpay HMAC signature
         const isValid = verifySignature(
             razorpay_order_id,
             razorpay_payment_id,
             razorpay_signature
         );
         if (!isValid) {
+            const purchase = await Purchase.findOneAndUpdate(
+                { razorpayOrderId: razorpay_order_id },
+                { razorpayPaymentId: razorpay_payment_id, status: "failed" },
+                { new: true }
+            );
+            if (purchase) {
+                await sendPaymentFailedEmail({ user: req.user, purchase });
+            }
             return next(new AppError("Payment verification failed", 400));
         }
         const order = await razorpay.orders.fetch(razorpay_order_id);

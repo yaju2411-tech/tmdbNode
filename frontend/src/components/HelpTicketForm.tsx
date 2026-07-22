@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CheckCircle2, Loader2, Send, X } from "lucide-react";
 import { api } from "../servicies/api-client";
 import { toast } from "sonner";
@@ -29,9 +29,18 @@ export const HelpTicketForm = () => {
     contentType: "movie",
   });
   const [proofImages, setProofImages] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [ticketId, setTicketId] = useState("");
+
+  useEffect(() => {
+    const urls = proofImages.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [proofImages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -269,7 +278,7 @@ export const HelpTicketForm = () => {
                     {proofImages.map((file, index) => (
                       <div key={index} className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-zinc-800 w-20 h-20 shadow-sm">
                         <img 
-                          src={URL.createObjectURL(file)} 
+                          src={previewUrls[index]} 
                           alt={`Preview ${index}`} 
                           className="w-full h-full object-cover"
                         />

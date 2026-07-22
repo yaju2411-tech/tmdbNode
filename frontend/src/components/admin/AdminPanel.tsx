@@ -17,12 +17,15 @@ import { FaChartPie, FaUser } from "react-icons/fa";
 import { MdMovie, MdSupportAgent } from "react-icons/md";
 import { AdminUpdateProfileDialog } from "./AdminUpdateProfileDialog";
 import { AdminTickets } from "./AdminTickets";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../servicies/api-client";
+import { useTheme } from "../../hooks/useTheme";
 
 export const AdminPanel = () => {
   const { admin, adminSignOut } = useAdminHook();
   const location = useLocation();
   const [tab, setTab] = useState<"admin" | "users" | "mpurchases" | "analytics" | "helpNotify">(location.state?.tab || "analytics");
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   // Handle location state updates if the user clicks the bell while already on the AdminPanel page
@@ -31,16 +34,6 @@ export const AdminPanel = () => {
       setTab(location.state.tab);
     }
   }, [location.state]);
-
-  useEffect(() => {
-    if (localStorage.getItem("theme") === "light") {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    }
-  }, []);
 
   //notification
   useAdminNotifications((payload: any) => {
@@ -54,17 +47,15 @@ export const AdminPanel = () => {
     });
   });
 
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
-    }
-  };
+  const { data: tickets = [] } = useQuery({
+    queryKey: ["adminTickets"],
+    queryFn: async () => {
+      const res = await api.get("/admin/tickets");
+      return res.data?.tickets || [];
+    },
+    refetchInterval: 15000,
+  });
+  const openTicketsCount = tickets.filter((t: any) => t.status === "open").length;
 
   const adminProfile = admin?.[0] || {};
 
@@ -130,12 +121,27 @@ export const AdminPanel = () => {
               </SheetContent>
             </Sheet>
 
+            {/* Mobile Notify Bell (aside of open sidebar button) */}
+            <button
+              onClick={() => setTab("helpNotify")}
+              className="md:hidden relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+              title={`${openTicketsCount} open tickets`}
+            >
+              <Bell size={22} />
+              {openTicketsCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-zinc-950"></span>
+                </span>
+              )}
+            </button>
+
             <Link to="/" className="text-xl font-bold text-[#E50914] tracking-wider hover:text-red-500 transition-colors">
               TMDB Admin
             </Link>
           </div>
 
-          {/* Desktop User Dropdown */}
+          {/* Desktop User Dropdown & Notify Bell */}
           <div className="hidden md:flex items-center gap-4 me-3">
             {admin.map((a: any) => (
               <DropdownMenu key={a.user_id}>
@@ -167,6 +173,21 @@ export const AdminPanel = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ))}
+
+            {/* Notification Bell (at right side of avatar on desktop) */}
+            <button
+              onClick={() => setTab("helpNotify")}
+              className="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+              title={`${openTicketsCount} open tickets`}
+            >
+              <Bell size={22} />
+              {openTicketsCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-zinc-950"></span>
+                </span>
+              )}
+            </button>
           </div>
         </div>
 

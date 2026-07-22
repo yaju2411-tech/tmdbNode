@@ -1,35 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { HelpChat } from "../components/HelpChat";
 import { HelpTicketForm } from "../components/HelpTicketForm";
 import { Bot, Mail, ShieldAlert, ArrowLeft, SunIcon, MoonIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../hooks/useTheme";
 
 export default function HelpCenterPage() {
   const [activeTab, setActiveTab] = useState<"chat" | "ticket">("chat");
-  const [isDark, setIsDark] = useState(true);
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (localStorage.getItem("theme") === "light") {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-white dark:bg-zinc-950 text-gray-900 dark:text-white transition-colors relative">

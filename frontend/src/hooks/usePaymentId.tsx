@@ -13,15 +13,17 @@ export const usePaymentId = (movieId: string, type: "movie" | "tv") => {
         },
       });
       return {
+        orderId: res.data.orderId || null,
         paymentId: res.data.paymentId || null,
         receiptNumber: res.data.receiptNumber || null,
       };
     },
     enabled: !!movieId,
-    staleTime: 60 * 1000,
+    staleTime: 5 * 1000,
   });
 
   return {
+    orderId: query.data?.orderId || null,
     paymentId: query.data?.paymentId || null,
     receiptNumber: query.data?.receiptNumber || null,
     loading: query.isLoading,

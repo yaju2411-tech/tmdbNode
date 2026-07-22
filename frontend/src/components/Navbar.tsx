@@ -10,8 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "./ui/input";
 import { MdAccountBox, MdOutlineAdminPanelSettings, MdUpdate } from "react-icons/md";
 import { FaSignOutAlt } from "react-icons/fa";
-import { useQuery } from "@tanstack/react-query";
-import apiClient from "../servicies/api-client";
 
 interface Props {
   searchText: string,
@@ -33,17 +31,6 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
   const [profilePreview, setProfilePreview] = useState<string | undefined>();
   const [isDark, setIsDark] = useState(true);
   const isGoogle = provider === "google"
-
-  const { data: tickets = [] } = useQuery({
-    queryKey: ["adminTickets"],
-    queryFn: async () => {
-      const res = await apiClient.get("/admin/tickets");
-      return res.data.tickets;
-    },
-    enabled: role === "admin",
-    refetchInterval: 30000,
-  });
-  const openTicketsCount = tickets.filter((t: any) => t.status === "open").length;
 
   useEffect(() => {
     if (localStorage.getItem("theme") === "light") {
@@ -108,26 +95,10 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
         <div className="hidden md:flex items-center gap-4 font-semibold mr-8">
           <Link to="/app/discover/tv" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm">TV Shows</Link>
           <Link to="/app/discover/movie" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm">Movies</Link>
-          <Link to="/help" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm flex items-center gap-1"><HelpCircle size={14} /> Help</Link>
           {userData && (
             <Link to="/app/myMovies" className="text-[#E50914] dark:text-[#E50914] hover:text-red-600 dark:hover:text-red-500 transition-colors text-sm truncate max-w-[100px] sm:max-w-none">Purchased</Link>
           )}
         </div>
-        {role === "admin" && (
-          <button
-            onClick={() => navigate("/adminPanel", { state: { tab: "helpNotify" } })}
-            className="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors mr-2 hidden md:block"
-            title={`${openTicketsCount} open tickets`}
-          >
-            <Bell size={20} />
-            {openTicketsCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-zinc-950"></span>
-              </span>
-            )}
-          </button>
-        )}
         {!isLoading && userData && (
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DropdownMenu>

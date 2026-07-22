@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import useSignUpHook from "../hooks/useSignUpHook";
 import { api } from "./api-client";
+import { toast } from "sonner";
 
 export function RootLayout() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export function RootLayout() {
     const isAuthPage =
       path === "/loginPage" ||
       path === "/signUpPage";
-    
+
     const isPublicPage = path === "/" || path === "/help" || path.startsWith("/receipt");
 
     // no session
@@ -28,7 +29,7 @@ export function RootLayout() {
     if (userData && !userData.isEmailVerified && userData.provider !== 'google') {
       logout();
       navigate("/loginPage");
-      alert("Please verify your email first");
+      toast.error("Please verify your email first");
       return;
     }
 

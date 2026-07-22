@@ -24,7 +24,7 @@ export const ReceiptCard = ({ receipt }: ReceiptCardProps) => {
             <View style={styles.logoBox}>
               <Text style={styles.logoText}>$</Text>
             </View>
-            <View style={styles}>
+            <View>
               <Text style={styles.title}>TMDB Receipt</Text>
               <Text style={styles.subtitle}>Original Reciept</Text>
             </View>

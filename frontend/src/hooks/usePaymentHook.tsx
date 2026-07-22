@@ -81,10 +81,6 @@ export const usePayment = () => {
 
       const data = res.data;
       if (!data.success) {
-        await api.post("/payment/update-status", {
-          orderId: response.razorpay_order_id,
-          status: "failed",
-        });
         dispatch({
           type: "FAIL",
           payload: "Payment verification failed",
@@ -127,14 +123,6 @@ export const usePayment = () => {
         duration: Number.POSITIVE_INFINITY,
         closeButton: true,
       });
-      try {
-        await api.post("/payment/update-status", {
-          orderId: response.razorpay_order_id,
-          status: "failed",
-        });
-      } catch (updateErr) {
-        console.error("Failed to update status on error:", updateErr);
-      }
       await queryClient.invalidateQueries({
         queryKey: ["purchase-status", String(id), contentType],
       });

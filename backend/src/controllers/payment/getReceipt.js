@@ -48,13 +48,13 @@ export const getPaymentIdAndReceipt = async (req, res, next) => {
         const purchase = await Purchase.findOne({
             user: req.user._id,
             contentId: Number(contentId),
-            contentType: contentType,
-            status: "paid"
-        });
+            contentType: contentType
+        }).sort({ createdAt: -1 });
 
         if (!purchase) {
             return res.json({
                 success: true,
+                orderId: null,
                 paymentId: null,
                 receiptNumber: null
             });
@@ -67,7 +67,8 @@ export const getPaymentIdAndReceipt = async (req, res, next) => {
 
         return res.json({
             success: true,
-            paymentId: receipt?.razorpayPaymentId || purchase.razorpayPaymentId,
+            orderId: purchase.razorpayOrderId || null,
+            paymentId: receipt?.razorpayPaymentId || purchase.razorpayPaymentId || null,
             receiptNumber: receipt?.receiptNumber || null
         });
     } catch (err) {
