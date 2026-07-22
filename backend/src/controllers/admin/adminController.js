@@ -372,52 +372,53 @@ export const getTickets = async (req, res, next) => {
     try {
         const rawTickets = await HelpTicket.find().sort({ createdAt: -1 });
 
-        const tickets = await Promise.all(
-            rawTickets.map(async (t) => {
-                const doc = t.toObject();
-                // If orderId, paymentId, contentName, or purchaseStatus is missing, check Purchase collection
-                if (doc.email && doc.contentId) {
-                    try {
-                        const user = await User.findOne({ email: doc.email.trim().toLowerCase() });
-                        if (user) {
-                            const purchase = await Purchase.findOne({
-                                user: user._id,
-                                contentId: Number(doc.contentId),
-                                contentType: doc.contentType || "movie"
-                            }).sort({ createdAt: -1 });
+        // Collect distinct emails and contentIds for batching
+        const emails = [...new Set(rawTickets.map((t) => t.email ? t.email.trim().toLowerCase() : null).filter(Boolean))];
+        const contentIds = [...new Set(rawTickets.map((t) => t.contentId ? Number(t.contentId) : null).filter((id) => id !== null && !isNaN(id)))];
 
-                            if (purchase) {
-                                doc.purchaseStatus = purchase.status === "paid" ? "success" : purchase.status;
-                                let updated = false;
-                                if ((!doc.orderId || doc.orderId === "N/A") && purchase.razorpayOrderId) {
-                                    doc.orderId = purchase.razorpayOrderId;
-                                    t.orderId = purchase.razorpayOrderId;
-                                    updated = true;
-                                }
-                                if ((!doc.paymentId || doc.paymentId === "N/A") && purchase.razorpayPaymentId) {
-                                    doc.paymentId = purchase.razorpayPaymentId;
-                                    t.paymentId = purchase.razorpayPaymentId;
-                                    updated = true;
-                                }
-                                if (!doc.contentName && purchase.title) {
-                                    doc.contentName = purchase.title;
-                                    t.contentName = purchase.title;
-                                    updated = true;
-                                }
-                                if (updated) {
-                                    await t.save().catch(() => {});
-                                }
-                            } else {
-                                doc.purchaseStatus = "no_record";
-                            }
+        const users = emails.length > 0 ? await User.find({ email: { $in: emails } }).select("_id email") : [];
+        const userMap = new Map(users.map((u) => [u.email.toLowerCase(), u._id.toString()]));
+        const userIds = users.map((u) => u._id);
+
+        const purchases = userIds.length > 0 && contentIds.length > 0
+            ? await Purchase.find({ user: { $in: userIds }, contentId: { $in: contentIds } }).sort({ createdAt: -1 })
+            : [];
+
+        // Build purchase lookup map: "userId_contentId_contentType" => purchase
+        const purchaseMap = new Map();
+        for (const p of purchases) {
+            const key = `${p.user.toString()}_${p.contentId}_${p.contentType || "movie"}`;
+            if (!purchaseMap.has(key)) {
+                purchaseMap.set(key, p);
+            }
+        }
+
+        const tickets = rawTickets.map((t) => {
+            const doc = t.toObject();
+            if (doc.email && doc.contentId) {
+                const normalizedEmail = doc.email.trim().toLowerCase();
+                const userId = userMap.get(normalizedEmail);
+                if (userId) {
+                    const key = `${userId}_${Number(doc.contentId)}_${doc.contentType || "movie"}`;
+                    const purchase = purchaseMap.get(key);
+                    if (purchase) {
+                        doc.purchaseStatus = purchase.status === "paid" ? "success" : purchase.status;
+                        if ((!doc.orderId || doc.orderId === "N/A") && purchase.razorpayOrderId) {
+                            doc.orderId = purchase.razorpayOrderId;
                         }
-                    } catch (e) {
-                        console.error("Error backfilling ticket details:", e);
+                        if ((!doc.paymentId || doc.paymentId === "N/A") && purchase.razorpayPaymentId) {
+                            doc.paymentId = purchase.razorpayPaymentId;
+                        }
+                        if (!doc.contentName && purchase.title) {
+                            doc.contentName = purchase.title;
+                        }
+                    } else {
+                        doc.purchaseStatus = "no_record";
                     }
                 }
-                return doc;
-            })
-        );
+            }
+            return doc;
+        });
 
         return res.json({
             success: true,
@@ -526,7 +527,7 @@ export const grantManualAccess = async (req, res, next) => {
         }
 
         // Fetch details from TMDB to construct the Purchase record
-        const tmdbUrl = `https://api.tmdb.org/3/${contentType}/${contentId}?api_key=${process.env.TMDB_API_KEY}`;
+        const tmdbUrl = `https://api.themoviedb.org/3/${contentType}/${contentId}?api_key=${process.env.TMDB_API_KEY}`;
         
         let title, poster;
         try {
@@ -717,7 +718,10 @@ export const sendEmail = async (req, res, next) => {
             text: body,
         });
 
-        ticket.adminNote = `Email sent to user: \n${body}`;
+        const emailLog = `[Email Sent]: ${body || ""}`;
+        ticket.adminNote = ticket.adminNote
+            ? `${ticket.adminNote}\n\n${emailLog}`
+            : emailLog;
         await ticket.save();
 
         return res.json({ success: true, message: "Email sent successfully" });

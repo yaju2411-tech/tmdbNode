@@ -19,6 +19,9 @@ import { errorHandler } from "./middleware/errorMiddlware.js";
 
 const app = express();
 
+// Trust reverse proxy (1 hop) for rate-limiting client IP resolution
+app.set("trust proxy", 1);
+
 // Security Middleware
 app.use(helmet());
 

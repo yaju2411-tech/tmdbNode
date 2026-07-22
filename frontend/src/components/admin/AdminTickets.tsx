@@ -121,12 +121,16 @@ export const AdminTickets = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, categoryFilter, ticketType, itemsPerPage]);
 
-  const copyToClipboard = (text: string, fieldId: string) => {
+  const copyToClipboard = async (text: string, fieldId: string) => {
     if (!text || text === "N/A") return;
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldId);
-    toast.success(`Copied "${text}" to clipboard`);
-    setTimeout(() => setCopiedField(null), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldId);
+      toast.success(`Copied "${text}" to clipboard`);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch (err) {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   const tickets = allTickets.filter((t: Ticket) => {
@@ -613,7 +617,7 @@ export const AdminTickets = () => {
                             onClick={() => handleDeleteTicket(ticket)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" /> Delete Ticket
-                            {ticket.status !== "resolved" && <AlertTriangle className="ml-auto h-3 h-3 text-amber-500" />}
+                            {ticket.status !== "resolved" && <AlertTriangle className="ml-auto w-3 h-3 text-amber-500" />}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

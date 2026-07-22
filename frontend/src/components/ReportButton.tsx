@@ -16,6 +16,7 @@ export const ReportButton: React.FC<ReportButtonProps> = ({ onClick }) => {
             onClick={onClick}
             className="bg-red-600 hover:bg-red-700 text-white p-2.5 rounded-md shadow-md shrink-0"
             title="Send Report"
+            aria-label="Send Report"
           >
             <AlertCircle size={18} />
           </Button>

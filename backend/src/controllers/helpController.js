@@ -125,32 +125,29 @@ export const submitTicket = async (req, res, next) => {
     const resolvedContentType = contentType || "movie";
 
     // Auto-lookup purchase in DB only if the authenticated user matches the ticket email
-    if (isRequesterOwner && userEmail && resolvedContentId) {
+    if (isRequesterOwner && req.user && resolvedContentId) {
       try {
-        const foundUser = await User.findOne({ email: userEmail });
-        if (foundUser) {
-          const foundPurchase = await Purchase.findOne({
-            user: foundUser._id,
-            contentId: Number(resolvedContentId),
-            contentType: resolvedContentType,
-          }).sort({ createdAt: -1 });
+        const foundPurchase = await Purchase.findOne({
+          user: req.user._id,
+          contentId: Number(resolvedContentId),
+          contentType: resolvedContentType,
+        }).sort({ createdAt: -1 });
 
-          if (foundPurchase) {
-            if (!resolvedOrderId || resolvedOrderId === "N/A") {
-              resolvedOrderId = foundPurchase.razorpayOrderId || null;
-            }
-            if (!resolvedPaymentId || resolvedPaymentId === "N/A") {
-              resolvedPaymentId = foundPurchase.razorpayPaymentId || null;
-            }
-            if (!resolvedContentName) {
-              resolvedContentName = foundPurchase.title || null;
-            }
+        if (foundPurchase) {
+          if (!resolvedOrderId || resolvedOrderId === "N/A") {
+            resolvedOrderId = foundPurchase.razorpayOrderId || null;
+          }
+          if (!resolvedPaymentId || resolvedPaymentId === "N/A") {
+            resolvedPaymentId = foundPurchase.razorpayPaymentId || null;
+          }
+          if (!resolvedContentName) {
+            resolvedContentName = foundPurchase.title || null;
+          }
 
-            const foundReceipt = await Receipt.findOne({ purchase: foundPurchase._id });
-            if (foundReceipt) {
-              if (!resolvedReceiptId) resolvedReceiptId = foundReceipt.receiptNumber || null;
-              if (!resolvedPaymentId || resolvedPaymentId === "N/A") resolvedPaymentId = foundReceipt.razorpayPaymentId || null;
-            }
+          const foundReceipt = await Receipt.findOne({ purchase: foundPurchase._id });
+          if (foundReceipt) {
+            if (!resolvedReceiptId) resolvedReceiptId = foundReceipt.receiptNumber || null;
+            if (!resolvedPaymentId || resolvedPaymentId === "N/A") resolvedPaymentId = foundReceipt.razorpayPaymentId || null;
           }
         }
       } catch (lookupErr) {

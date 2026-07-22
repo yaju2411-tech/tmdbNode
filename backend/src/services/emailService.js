@@ -56,6 +56,8 @@ export const sendOTP = async (email, otp) => {
 export const sendTicketConfirmation = async (email, ticket) => {
   const safeName = escapeHtml(ticket.name);
   const safeDescription = escapeHtml(ticket.description);
+  const categoryLabel = CATEGORY_LABELS[ticket.category] || "Other";
+  const safeCategoryLabel = escapeHtml(categoryLabel);
 
   await transporter.sendMail({
     from: `"TMDB Support" <${process.env.EMAIL_USER}>`,
@@ -79,7 +81,7 @@ export const sendTicketConfirmation = async (email, ticket) => {
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #777; font-size: 13px;">Category</td>
-                <td style="padding: 8px 0; color: #f1f1f1; font-size: 14px;">${CATEGORY_LABELS[ticket.category] || ticket.category}</td>
+                <td style="padding: 8px 0; color: #f1f1f1; font-size: 14px;">${safeCategoryLabel}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0; color: #777; font-size: 13px; vertical-align: top;">Description</td>
@@ -101,11 +103,13 @@ export const sendAdminTicketAlert = async (ticket) => {
   const safeName = escapeHtml(ticket.name);
   const safeEmail = escapeHtml(ticket.email);
   const safeDescription = escapeHtml(ticket.description);
+  const categoryLabel = CATEGORY_LABELS[ticket.category] || "Other";
+  const safeCategoryLabel = escapeHtml(categoryLabel);
 
   await transporter.sendMail({
     from: `"TMDB Alerts" <${process.env.EMAIL_USER}>`,
     to: process.env.EMAIL_USER,
-    subject: `🆕 New Support Ticket [${ticket.ticketId}] — ${CATEGORY_LABELS[ticket.category] || ticket.category}`,
+    subject: `🆕 New Support Ticket [${ticket.ticketId}] — ${categoryLabel}`,
     html: `
       <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; color: #f1f1f1; border-radius: 12px; overflow: hidden; border: 1px solid #222;">
         <div style="background: #1a1a1a; padding: 24px 32px; border-bottom: 1px solid #333;">
@@ -116,7 +120,7 @@ export const sendAdminTicketAlert = async (ticket) => {
           <table style="width:100%; border-collapse: collapse;">
             <tr><td style="padding:10px 0;color:#666;font-size:13px;width:35%;">Ticket ID</td><td style="padding:10px 0;color:#e50914;font-weight:700;">${ticket.ticketId}</td></tr>
             <tr><td style="padding:10px 0;color:#666;font-size:13px;">From</td><td style="padding:10px 0;color:#f1f1f1;">${safeName} &lt;${safeEmail}&gt;</td></tr>
-            <tr><td style="padding:10px 0;color:#666;font-size:13px;">Category</td><td style="padding:10px 0;color:#f1f1f1;">${CATEGORY_LABELS[ticket.category] || ticket.category}</td></tr>
+            <tr><td style="padding:10px 0;color:#666;font-size:13px;">Category</td><td style="padding:10px 0;color:#f1f1f1;">${safeCategoryLabel}</td></tr>
             <tr><td style="padding:10px 0;color:#666;font-size:13px;vertical-align:top;">Description</td><td style="padding:10px 0;color:#f1f1f1;line-height:1.6;">${safeDescription}</td></tr>
           </table>
           <div style="margin-top:24px;padding:12px 16px;background:#1e1e1e;border-radius:8px;border-left:3px solid #e50914;">
