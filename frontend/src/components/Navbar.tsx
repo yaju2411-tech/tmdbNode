@@ -125,7 +125,7 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
                 <DropdownMenuItem className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors" onClick={toggleTheme}>
                   {isDark ? <SunIcon /> : <MoonIcon />}{isDark ? <p>LightMode</p> : <p>DarkMode</p>}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-3 focus:bg-red-100 dark:focus:bg-red-900/50 focus:text-red-600 dark:focus:text-red-500 cursor-pointer text-red-600 dark:text-red-500 transition-colors" onSelect={logout}>
+                <DropdownMenuItem className="gap-3 focus:bg-red-100 dark:focus:bg-red-900/50 focus:text-red-600 dark:focus:text-red-500 cursor-pointer text-red-600 dark:text-red-500 transition-colors" onSelect={() => logout()}>
                   <FaSignOutAlt /><p>Sign out</p>
                 </DropdownMenuItem>
               </DropdownMenuContent>

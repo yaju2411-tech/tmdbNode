@@ -3,6 +3,7 @@ import HelpTicket from "../models/HelpTicket.js";
 import User from "../models/User.js";
 import Purchase from "../models/Purchase.js";
 import Receipt from "../models/Receipt.js";
+import AppError from "../utils/appError.js";
 import { sendTicketConfirmation, sendAdminTicketAlert } from "../services/emailService.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
 
@@ -60,6 +61,7 @@ export const aiChat = async (req, res, next) => {
         temperature: 0.5,
       },
       {
+        timeout: 15000,
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API}`,
           "Content-Type": "application/json",
@@ -88,15 +90,18 @@ export const submitTicket = async (req, res, next) => {
     } = req.body;
 
     if (!name || !email || !category || !description) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      return next(new AppError("All fields are required", 400));
     }
 
     if (description.trim().length < 20) {
-      return res.status(400).json({ success: false, message: "Please describe your issue in at least 20 characters" });
+      return next(new AppError("Please describe your issue in at least 20 characters", 400));
     }
 
     let proofImagesUrls = [];
     if (req.files && req.files.length > 0) {
+      if (req.files.length > 5) {
+        return next(new AppError("You can upload a maximum of 5 proof images", 400));
+      }
       try {
         const uploadPromises = req.files.map((file) => uploadToCloudinary(file.buffer, "tickets"));
         const uploadResults = await Promise.all(uploadPromises);
@@ -108,15 +113,19 @@ export const submitTicket = async (req, res, next) => {
     }
 
     const userEmail = email.trim().toLowerCase();
-    let resolvedOrderId = orderId ? orderId.trim() : null;
-    let resolvedPaymentId = paymentId ? paymentId.trim() : null;
-    let resolvedReceiptId = receiptId ? receiptId.trim() : null;
+    const isRequesterOwner = Boolean(
+      req.user && req.user.email && req.user.email.trim().toLowerCase() === userEmail
+    );
+
+    let resolvedOrderId = isRequesterOwner && orderId ? orderId.trim() : null;
+    let resolvedPaymentId = isRequesterOwner && paymentId ? paymentId.trim() : null;
+    let resolvedReceiptId = isRequesterOwner && receiptId ? receiptId.trim() : null;
     let resolvedContentName = contentName ? contentName.trim() : null;
     const resolvedContentId = contentId ? contentId.trim() : null;
     const resolvedContentType = contentType || "movie";
 
-    // Auto-lookup purchase in DB if missing orderId/paymentId/contentName
-    if (userEmail && resolvedContentId) {
+    // Auto-lookup purchase in DB only if the authenticated user matches the ticket email
+    if (isRequesterOwner && userEmail && resolvedContentId) {
       try {
         const foundUser = await User.findOne({ email: userEmail });
         if (foundUser) {

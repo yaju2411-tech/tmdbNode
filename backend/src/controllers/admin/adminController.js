@@ -8,6 +8,7 @@ import axios from "axios";
 import nodemailer from "nodemailer";
 import Receipt from "../../models/Receipt.js";
 import { reciptGenerator } from "../../utils/receiptNoGenerator.js";
+import razorpay from "../../config/razorpay.js";
 
 // Fetch all admin profiles
 export const getAdmins = async (req, res, next) => {
@@ -519,7 +520,7 @@ export const grantManualAccess = async (req, res, next) => {
             return next(new AppError("Ticket not found", 404));
         }
 
-        const user = await User.findOne({ email: ticket.email });
+        const user = await User.findOne({ email: ticket.email.trim().toLowerCase() });
         if (!user) {
             return next(new AppError("User not found for this email.", 404));
         }
@@ -723,5 +724,92 @@ export const sendEmail = async (req, res, next) => {
     } catch (err) {
         console.error("Nodemailer Error:", err);
         next(new AppError("Failed to send email", 500));
+    }
+};
+
+// Check live status of Order ID or Payment ID on Razorpay
+export const checkRazorpayStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const ticket = await HelpTicket.findById(id);
+        if (!ticket) {
+            return next(new AppError("Ticket not found", 404));
+        }
+
+        const orderId = ticket.orderId && ticket.orderId !== "N/A" ? ticket.orderId : null;
+        const paymentId = ticket.paymentId && ticket.paymentId !== "N/A" ? ticket.paymentId : null;
+
+        if (!orderId && !paymentId) {
+            return next(new AppError("No Order ID or Payment ID available on this ticket to verify with Razorpay.", 400));
+        }
+
+        let orderDetails = null;
+        let orderPayments = [];
+        let singlePayment = null;
+
+        // 1. Fetch Order from Razorpay API
+        if (orderId && orderId.startsWith("order_")) {
+            try {
+                orderDetails = await razorpay.orders.fetch(orderId);
+                const paymentsRes = await razorpay.orders.fetchPayments(orderId);
+                orderPayments = paymentsRes?.items || [];
+            } catch (err) {
+                console.error("Razorpay order fetch error:", err.message);
+            }
+        }
+
+        // 2. Fetch Single Payment from Razorpay API if provided
+        if (paymentId && paymentId.startsWith("pay_")) {
+            try {
+                singlePayment = await razorpay.payments.fetch(paymentId);
+            } catch (err) {
+                console.error("Razorpay payment fetch error:", err.message);
+            }
+        }
+
+        // Determine Overall Verification Result
+        const hasCapturedPayment = 
+            orderPayments.some(p => p.status === "captured") ||
+            (singlePayment && singlePayment.status === "captured") ||
+            (orderDetails && orderDetails.status === "paid");
+
+        return res.json({
+            success: true,
+            ticketId: ticket.ticketId,
+            verification: {
+                hasCapturedPayment,
+                orderId,
+                paymentId,
+                orderDetails: orderDetails ? {
+                    id: orderDetails.id,
+                    amount: orderDetails.amount / 100,
+                    amountPaid: orderDetails.amount_paid / 100,
+                    status: orderDetails.status,
+                    attempts: orderDetails.attempts,
+                    createdAt: new Date(orderDetails.created_at * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+                } : null,
+                payments: orderPayments.map(p => ({
+                    id: p.id,
+                    amount: p.amount / 100,
+                    status: p.status,
+                    method: p.method,
+                    email: p.email,
+                    contact: p.contact,
+                    errorDescription: p.error_description || null,
+                    createdAt: new Date(p.created_at * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+                })),
+                singlePayment: singlePayment ? {
+                    id: singlePayment.id,
+                    amount: singlePayment.amount / 100,
+                    status: singlePayment.status,
+                    method: singlePayment.method,
+                    email: singlePayment.email,
+                    errorDescription: singlePayment.error_description || null,
+                    createdAt: new Date(singlePayment.created_at * 1000).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+                } : null,
+            }
+        });
+    } catch (err) {
+        next(err);
     }
 };

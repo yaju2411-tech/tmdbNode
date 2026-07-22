@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const helpTicketSchema = new mongoose.Schema(
   {
@@ -62,7 +63,7 @@ const helpTicketSchema = new mongoose.Schema(
 // Auto-generate a short ticket ID before saving
 helpTicketSchema.pre("save", function () {
   if (!this.ticketId) {
-    this.ticketId = "TKT-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    this.ticketId = "TKT-" + crypto.randomBytes(5).toString("hex").toUpperCase();
   }
 });
 

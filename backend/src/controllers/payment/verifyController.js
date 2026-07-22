@@ -21,8 +21,12 @@ export const verifyPayment = async (req, res, next) => {
         );
         if (!isValid) {
             const purchase = await Purchase.findOneAndUpdate(
-                { razorpayOrderId: razorpay_order_id },
-                { razorpayPaymentId: razorpay_payment_id, status: "failed" },
+                {
+                    razorpayOrderId: razorpay_order_id,
+                    user: req.user._id,
+                    status: { $nin: ["paid", "success", "manual_access"] }
+                },
+                { status: "verification_failed" },
                 { new: true }
             );
             if (purchase) {

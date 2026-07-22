@@ -86,6 +86,10 @@ export const ReportPendingModal = ({
       toast.error("Please enter your email address");
       return;
     }
+    if (user?.email && email.trim().toLowerCase() !== user.email.trim().toLowerCase()) {
+      toast.error(`You are logged in as ${user.email}. Please submit the report using your account email.`);
+      return;
+    }
     if (description.trim().length < 20) {
       toast.error("Please describe your issue in at least 20 characters");
       return;
@@ -109,8 +113,9 @@ export const ReportPendingModal = ({
       formData.append("contentName", contentTitle);
       formData.append("contentId", String(contentId));
       formData.append("contentType", contentType);
-      if (orderId) formData.append("orderId", orderId);
-      if (paymentId) formData.append("paymentId", paymentId);
+      const isOwnerEmail = user?.email && email.trim().toLowerCase() === user.email.trim().toLowerCase();
+      if (orderId && isOwnerEmail) formData.append("orderId", orderId);
+      if (paymentId && isOwnerEmail) formData.append("paymentId", paymentId);
 
       if (proofImages.length > 0) {
         proofImages.forEach((file) => {
@@ -118,9 +123,7 @@ export const ReportPendingModal = ({
         });
       }
 
-      const res = await api.post("/help/ticket", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await api.post("/help/ticket", formData);
 
       if (res.data.success) {
         toast.success(`Report submitted successfully! Ticket ID: ${res.data.ticketId}`);

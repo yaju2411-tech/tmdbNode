@@ -140,7 +140,7 @@ const HomePage = () => {
                   </div>
                   {/* LOGOUT */}
                   <DropdownMenuItem
-                    onClick={logout}
+                    onClick={() => logout()}
                     className="mt-2 rounded-xl cursor-pointer focus:bg-red-600 focus:text-white flex items-center gap-3 py-1">
                     <LogOut size={18} />
                     Logout
@@ -199,7 +199,7 @@ const HomePage = () => {
                       <p className="text-zinc-400 text-right">{userData.email}</p>
                     </div>
                   </div>
-                    <Button variant={"default"} className="bg-red-600 text-white font-semibold" onClick={logout}>
+                    <Button variant={"default"} className="bg-red-600 text-white font-semibold" onClick={() => logout()}>
                       SignOut
                     </Button></> :
                     <Button className="bg-red-600 text-white font-semibold" onClick={() => { navigate("loginPage"); }}>

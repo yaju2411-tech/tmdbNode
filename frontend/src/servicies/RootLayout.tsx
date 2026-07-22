@@ -27,9 +27,11 @@ export function RootLayout() {
 
     // if logged in but not verified
     if (userData && !userData.isEmailVerified && userData.provider !== 'google') {
-      logout();
-      navigate("/loginPage");
-      toast.error("Please verify your email first");
+      const handleUnverified = async () => {
+        await logout("/loginPage");
+        toast.error("Please verify your email first");
+      };
+      handleUnverified();
       return;
     }
 

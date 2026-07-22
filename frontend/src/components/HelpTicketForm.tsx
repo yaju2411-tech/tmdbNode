@@ -80,9 +80,7 @@ export const HelpTicketForm = () => {
         });
       }
 
-      const res = await api.post("/help/ticket", data, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      const res = await api.post("/help/ticket", data);
       if (res.data.success) {
         setTicketId(res.data.ticketId);
         setSubmitted(true);

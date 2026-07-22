@@ -2,7 +2,7 @@ import express from "express";
 import {
     getAdmins, getUsers, getMoviePurchases, getStats, updateUserByAdmin, updateAdmin,
     deleteUserByAdmin, forceVerifyUser, getTickets, updateTicketStatus, deleteTicket,
-    grantManualAccess, resetPayment, draftEmail, sendEmail
+    grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus
 } from "../controllers/admin/adminController.js";
 import protect from "../middleware/authMiddlware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
@@ -28,6 +28,7 @@ router.delete("/user/:id", deleteUserByAdmin);
 // Payment ticket management & verifications
 router.post("/tickets/:id/grant-access", grantManualAccess);
 router.post("/tickets/:id/reset-payment", resetPayment);
+router.post("/tickets/:id/check-razorpay", checkRazorpayStatus);
 
 // AI Assistant & Email
 router.post("/tickets/:id/draft-email", draftEmail);

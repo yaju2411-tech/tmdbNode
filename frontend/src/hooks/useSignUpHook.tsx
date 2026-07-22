@@ -98,14 +98,17 @@ const useSignUpHook = () => {
   };
 
   // LOGOUT
-  const logout = async () => {
+  const logout = async (targetPath?: string) => {
+    const redirectTo = typeof targetPath === "string" ? targetPath : "/";
     try {
       await api.get("/auth/logout");
       queryClient.removeQueries({
         queryKey: ["user"],
         exact: true
       });
-      navigate("/");
+      if (redirectTo) {
+        navigate(redirectTo);
+      }
     } catch (err: any) {
       console.error(err);
     }
