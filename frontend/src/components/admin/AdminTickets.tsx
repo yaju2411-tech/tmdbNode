@@ -626,23 +626,23 @@ export const AdminTickets = () => {
         </Table>
 
         {/* Enhanced Professional Pagination Footer */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-800 bg-zinc-900/60">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/60 transition-colors">
           {/* Status Counter */}
-          <div className="text-xs text-zinc-400">
-            Showing <span className="font-semibold text-white">{filteredTickets.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-            <span className="font-semibold text-white">{Math.min(currentPage * itemsPerPage, filteredTickets.length)}</span> of{" "}
-            <span className="font-semibold text-white">{filteredTickets.length}</span> tickets
+          <div className="text-xs text-gray-600 dark:text-zinc-400">
+            Showing <span className="font-semibold text-gray-900 dark:text-white">{filteredTickets.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">{Math.min(currentPage * itemsPerPage, filteredTickets.length)}</span> of{" "}
+            <span className="font-semibold text-gray-900 dark:text-white">{filteredTickets.length}</span> tickets
           </div>
 
           <div className="flex items-center gap-4">
             {/* Rows Per Page Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-400 whitespace-nowrap">Rows:</span>
+              <span className="text-xs text-gray-500 dark:text-zinc-400 whitespace-nowrap">Rows:</span>
               <Select value={String(itemsPerPage)} onValueChange={(val) => { setItemsPerPage(Number(val)); setCurrentPage(1); }}>
-                <SelectTrigger className="h-8 w-[75px] text-xs bg-zinc-950 border-zinc-800 text-white">
+                <SelectTrigger className="h-8 w-[75px] text-xs bg-white dark:bg-zinc-950 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-800 text-white text-xs">
+                <SelectContent className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white text-xs">
                   <SelectItem value="5">5</SelectItem>
                   <SelectItem value="10">10</SelectItem>
                   <SelectItem value="25">25</SelectItem>
@@ -658,7 +658,7 @@ export const AdminTickets = () => {
                 size="sm"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
-                className="h-8 w-8 p-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white disabled:opacity-30"
+                className="h-8 w-8 p-0 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30"
                 title="First Page"
               >
                 <ChevronsLeft className="h-4 w-4" />
@@ -669,7 +669,7 @@ export const AdminTickets = () => {
                 size="sm"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className="h-8 w-8 p-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white disabled:opacity-30"
+                className="h-8 w-8 p-0 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30"
                 title="Previous Page"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -684,14 +684,14 @@ export const AdminTickets = () => {
                     const showEllipsis = prev && p - prev > 1;
                     return (
                       <React.Fragment key={p}>
-                        {showEllipsis && <span className="text-xs text-zinc-600 px-1">...</span>}
+                        {showEllipsis && <span className="text-xs text-gray-400 dark:text-zinc-600 px-1">...</span>}
                         <Button
                           variant={currentPage === p ? "default" : "outline"}
                           size="sm"
                           onClick={() => setCurrentPage(p)}
                           className={`h-8 w-8 p-0 text-xs font-semibold ${currentPage === p
                               ? "bg-[#E50914] text-white hover:bg-red-700"
-                              : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white"
+                              : "border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white"
                             }`}
                         >
                           {p}
@@ -706,7 +706,7 @@ export const AdminTickets = () => {
                 size="sm"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                className="h-8 w-8 p-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white disabled:opacity-30"
+                className="h-8 w-8 p-0 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30"
                 title="Next Page"
               >
                 <ChevronRight className="h-4 w-4" />
@@ -717,7 +717,7 @@ export const AdminTickets = () => {
                 size="sm"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage(totalPages)}
-                className="h-8 w-8 p-0 border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white disabled:opacity-30"
+                className="h-8 w-8 p-0 border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30"
                 title="Last Page"
               >
                 <ChevronsRight className="h-4 w-4" />

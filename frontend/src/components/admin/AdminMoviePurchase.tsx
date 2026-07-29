@@ -4,7 +4,7 @@ import { FaRupeeSign } from "react-icons/fa";
 import { Badge } from "../ui/badge";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "../ui/drawer";
 import { toast } from "sonner";
-import { CircleEllipsisIcon, InfoIcon } from "lucide-react";
+import { CircleEllipsisIcon, InfoIcon, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
@@ -196,13 +196,25 @@ export const AdminMoviePurchase = () => {
         </DrawerHeader>
         {select && (
           <div className="flex flex-col p-6 space-y-6 dark:text-white">
-            {/* TOP: Images */}
-            <div className="flex items-center justify-evenly">
-              {/* Movie Poster */}
-              <img
-                src={`https://image.tmdb.org/t/p/w500/${select.poster_path}`}
-                className="w-24 h-40 rounded-md object-cover shadow"
-              />
+            {/* TOP: Image or Plan Badge */}
+            <div className="flex items-center justify-center py-2">
+              {select.poster_path && select.poster_path !== "undefined" ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w500/${select.poster_path}`}
+                  alt="Poster"
+                  className="w-28 h-40 rounded-2xl object-cover shadow-lg border border-gray-200 dark:border-zinc-800"
+                />
+              ) : (
+                <div className="w-48 h-28 rounded-2xl bg-gradient-to-br from-red-600 via-amber-600 to-red-700 flex flex-col items-center justify-center text-white shadow-xl p-4 border border-red-500/30">
+                  <Crown className="w-8 h-8 mb-1.5 text-amber-200" />
+                  <span className="font-extrabold text-xs tracking-wider uppercase text-center truncate max-w-full">
+                    {select.movie_name || select.title || "TMDB VIP PASS"}
+                  </span>
+                  <span className="text-[10px] bg-black/25 text-red-100 px-2 py-0.5 rounded-full mt-1.5 font-bold uppercase tracking-widest">
+                    VIP SUBSCRIPTION
+                  </span>
+                </div>
+              )}
             </div>
             {/* USER INFO */}
             <div className="space-y-1">
