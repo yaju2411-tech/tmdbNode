@@ -15,6 +15,8 @@ import { logout } from "../controllers/auth/logout.js";
 import protect from "../middleware/authMiddlware.js"
 import upload from "../middleware/upload.js";
 
+import cookieOptions from "../utils/cookieOption.js";
+
 const router = express.Router();
 
 router.get("/google",passport.authenticate("google", {
@@ -28,12 +30,7 @@ router.get("/google/callback",passport.authenticate("google", {
   }),
   (req, res) => {
     const { token } = req.user;
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, cookieOptions);
     res.redirect(`${process.env.CLIENT_URL}/app`);
   }
 );
