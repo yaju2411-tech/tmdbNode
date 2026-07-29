@@ -50,6 +50,8 @@ export interface Ticket {
   status: "open" | "in_progress" | "resolved" | "closed";
   adminNote?: string;
   createdAt: string;
+  plan?: string;
+  amount?: number;
   orderId?: string;
   paymentId?: string;
   receiptId?: string;

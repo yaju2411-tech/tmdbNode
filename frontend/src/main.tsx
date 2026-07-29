@@ -8,6 +8,8 @@ import './index.css'
 import { Toaster } from './components/ui/sonner'
 import { SidebarProvider } from './components/ui/sidebar'
 
+document.documentElement.classList.add("dark");
+
 const queryClient = new QueryClient()
 
 createRoot(document.getElementById('root')!).render(
