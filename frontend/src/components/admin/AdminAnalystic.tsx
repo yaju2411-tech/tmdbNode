@@ -2,7 +2,7 @@ import { useAdminHook } from "../../hooks/UseAdminHook";
 import { UserRoundCheck } from "lucide-react";
 import React, {useEffect, useState } from "react";
 import { FaRupeeSign } from "react-icons/fa";
-import {XAxis,YAxis,Tooltip,Legend,ResponsiveContainer,BarChart,Bar, Area, AreaChart,} from "recharts";
+import {XAxis,YAxis,Tooltip,Legend,ResponsiveContainer,BarChart,Bar, Area, AreaChart, Cell} from "recharts";
 import { Button } from "../ui/button";
 export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
   const [filters, setFilters] = useState({
@@ -154,13 +154,18 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
           );
         }}
       />
-      <Legend />
       <Bar
         dataKey="revenue"
         name="Revenue (₹)"
-        fill="#e50914"
         radius={[10, 10, 0, 0]}
-      />
+      >
+        {planChartData.map((entry, index) => (
+          <Cell
+            key={`cell-${index}`}
+            fill={index === 0 ? "#3b82f6" : index === 1 ? "#10b981" : "#e50914"}
+          />
+        ))}
+      </Bar>
       </BarChart>
         </ResponsiveContainer>
       </div>

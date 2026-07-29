@@ -209,10 +209,10 @@ export const AdminMoviePurchase = () => {
               <p className="text-lg font-semibold">{select.user_name}</p>
               <p className="text-sm text-gray-500">{select.user_email}</p>
             </div>
-            {/* MOVIE INFO */}
+            {/* SUBSCRIPTION / MOVIE INFO */}
             <div className="border-t pt-4 space-y-2">
-              <p><span className="font-semibold">Movie:</span> {select.movie_name}</p>
-              <p><span className="font-semibold">Movie ID:</span> {select.movie_id}</p>
+              <p><span className="font-semibold">Title / Pass:</span> {select.movie_name || select.title || "TMDB VIP Pass"}</p>
+              <p><span className="font-semibold">Content Type:</span> {select.content_type || "subscription"}</p>
             </div>
             {/* PAYMENT INFO */}
             <div className="border-t pt-4 space-y-2 text-md">
