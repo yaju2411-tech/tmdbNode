@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { usePayment } from "../hooks/usePaymentHook";
 import { useCheckePurchased } from "../hooks/useCheckPurchased";
 import { toast } from "sonner";
-import { ChevronLeft, IndianRupee, ReceiptIndianRupee } from "lucide-react";
+import { ChevronLeft, IndianRupee, ReceiptIndianRupee, Crown } from "lucide-react";
 import { useRealtimeNotifications } from "../hooks/useRealtimeNotification";
 import { Watchlist } from "./WatchlistButton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
@@ -14,6 +14,7 @@ import { ShareModal } from "./ShareModal";
 import { ReportPendingModal } from "./ReportPendingModal";
 import { ReportButton } from "./ReportButton";
 import { VidSrcPlayerModal } from "./VidSrcPlayerModal";
+import SubscriptionModal from "./SubscriptionModal";
 
 interface Props {
   onMoreDetail: () => void;
@@ -32,6 +33,7 @@ const TvDetailTrailer = ({ onMoreDetail }: Props) => {
   const [shareOpen, setShareOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [playerOpen, setPlayerOpen] = useState(false);
+  const [isSubModalOpen, setIsSubModalOpen] = useState(false);
   const userId = user?.id;
   useRealtimeNotifications(userId, (payload: any) => {
     toast.success(payload.new.title, {
@@ -179,11 +181,15 @@ const TvDetailTrailer = ({ onMoreDetail }: Props) => {
                       Watch Now (Manual Access)
                     </Button>
                   ) : (
-                    <Button onClick={handlePayment}
-                      className="bg-blue-800 text-zinc-100 hover:bg-blue-600 hover:text-white py-2 rounded-md transition-colors font-semibold">
-                      Buy {amount} <IndianRupee className="w-4 h-4 ml-1" />
+                    <Button onClick={() => setIsSubModalOpen(true)}
+                      className="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white font-bold py-2 px-5 rounded-xl shadow-lg transition-all flex items-center gap-1.5">
+                      <Crown className="w-4 h-4" /> Subscribe to Watch
                     </Button>
                   )}
+                  <SubscriptionModal
+                    isOpen={isSubModalOpen}
+                    onClose={() => setIsSubModalOpen(false)}
+                  />
                   <ReportPendingModal
                     open={reportOpen}
                     onOpenChange={setReportOpen}

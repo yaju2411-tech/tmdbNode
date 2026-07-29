@@ -21,32 +21,25 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
   );
 
   
-  const topContentChart = React.useMemo(() => {
-    const movieMap = new Map<string,number>();
-    const tvMap = new Map<string,number>();
+  const planChartData = React.useMemo(() => {
+    let monthlyCount = 0;
+    let quarterlyCount = 0;
+    let yearlyCount = 0;
 
-    table.forEach((purchase:any) => {
-      if (purchase.status !== "success") return;
-      const title = purchase.movie_name;
-      if (purchase.content_type === "movie") {
-        movieMap.set(title,(movieMap.get(title) || 0) + 1);
-        } else {
-        tvMap.set(title,(tvMap.get(title) || 0) + 1);
-        }
-    }); 
+    table.forEach((purchase: any) => {
+      if (purchase.status !== "success" && purchase.status !== "paid") return;
+      const plan = purchase.plan || (purchase.amount === 1499 ? "yearly" : purchase.amount === 399 ? "quarterly" : "monthly");
+      if (plan === "yearly") yearlyCount++;
+      else if (plan === "quarterly") quarterlyCount++;
+      else monthlyCount++;
+    });
 
-    const topMovie = Array.from(movieMap.entries()).sort((a,b)=>(b[1] - a[1])).slice(0,5);
-    const topTv = Array.from(tvMap.entries()).sort((a,b)=>(b[1]-a[1])).slice(0,5);
-    const maxLength = Math.max(topMovie.length,topTv.length);
-    
-    return Array.from({ length: maxLength }, (_, index) => ({
-    rank: `#${index + 1}`,
-    movieName: topMovie[index]?.[0] || "N/A",
-    movieUsers: topMovie[index]?.[1] || 0,
-    tvName: topTv[index]?.[0] || "N/A",
-    tvUsers: topTv[index]?.[1] || 0,
-    }));
-    }, [table]);
+    return [
+      { name: "Monthly (₹199)", sales: monthlyCount, revenue: monthlyCount * 199 },
+      { name: "Quarterly (₹399)", sales: quarterlyCount, revenue: quarterlyCount * 399 },
+      { name: "Yearly (₹1499)", sales: yearlyCount, revenue: yearlyCount * 1499 },
+    ];
+  }, [table]);
 
   const chartData = React.useMemo(() => {
   const months = [
@@ -56,35 +49,21 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
   ];
   const monthlyData = months.map((month) => ({
     month,
-    movieRevenue: null as number | null,
-    tvRevenue: null as number | null,
     totalRevenue: null as number | null,
   }));
   table.forEach((purchase: any) => {
-    if (purchase.status !== "success") return;
-    const date = new Date(
-      purchase.created_at
-    );
+    if (purchase.status !== "success" && purchase.status !== "paid") return;
+    const date = new Date(purchase.created_at || purchase.createdAt);
     const monthIndex = date.getMonth();
-    if (monthlyData[monthIndex].movieRevenue === null) {
-      monthlyData[monthIndex].movieRevenue = 0;
-    }
-    if (monthlyData[monthIndex].tvRevenue === null) {
-      monthlyData[monthIndex].tvRevenue = 0;
-    }
     if (monthlyData[monthIndex].totalRevenue === null) {
       monthlyData[monthIndex].totalRevenue = 0;
     }
-    const amount = Number(purchase.amount);
-    if (purchase.content_type === "movie") {
-      monthlyData[monthIndex].movieRevenue! += amount;
-    } else {
-      monthlyData[monthIndex].tvRevenue! += amount;
-    }
+    const amount = Number(purchase.amount) || 0;
     monthlyData[monthIndex].totalRevenue! += amount;
   });
   return monthlyData;
 }, [table]);
+
   return (
     <div className="space-y-5 overflow-x-hidden max-w-full">
       <div className="flex flex-col sm:flex-row gap-5 justify-end">
@@ -111,97 +90,78 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
         </div>
           <div className="p-5 rounded-xl shadow-sm hover:shadow-lg transition bg-white dark:bg-zinc-900 flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-500">Total Orders</p>
+              <p className="text-sm text-gray-500">Subscription Orders</p>
               <h2 className="text-3xl font-bold mt-2">
                 {stats.orders}
               </h2>
             </div>
-          <div className="mt-3 text-sm text-gray-500 space-y-2">
-            <p className="flex justify-between">
-              <span className="font-bold">🎬 Movies</span>
-              <span className="text-green-600 font-bold">{stats.movieOrder}</span>
-            </p>
-            <p className="flex justify-between gap-2">
-              <span className="font-bold">📺 TV Shows</span>
-              <span className="text-blue-600 font-bold">{stats.tvOrder}</span>
-            </p>
-          </div>
           <div className="mt-3 text-sm text-gray-500 space-y-1">
-            <p className="text-green-500">✔ {stats.successOrders} Success</p>
-            <p className="text-yellow-500">⏳ {stats.pendingOrders} Pending</p>
-            <p className="text-red-500"> ❌ {stats.failedOrders} Failed</p>
+            <p className="text-green-500 font-semibold">✔ {stats.successOrders} Active VIP</p>
+            <p className="text-yellow-500 font-semibold">⏳ {stats.pendingOrders} Pending</p>
+            <p className="text-red-500 font-semibold"> ❌ {stats.failedOrders} Failed</p>
           </div>
         </div>
         <div className="p-5 rounded-xl shadow-sm hover:shadow-lg transition bg-white dark:bg-zinc-900 flex justify-between items-center">
           <div>
-            <p className="text-sm text-gray-500">Total Revenue</p>
+            <p className="text-sm text-gray-500">Subscription Revenue</p>
             <h2 className="flex text-3xl font-bold mt-1">
               <FaRupeeSign className="mr-1 mt-2" />
               {stats.revenue}
             </h2>
           </div>
-          <div className="mt-3 text-sm text-gray-500 space-y-4">
-            <p className="flex justify-between">
-              <span className="font-bold">🎬 Movies</span>
-              <span className="text-green-600 font-bold flex"><FaRupeeSign className="mt-1"/>{stats.movieRevenue}</span>
+          <div className="mt-3 text-xs text-gray-400 space-y-1">
+            <p className="flex justify-between gap-4 font-semibold text-emerald-400">
+              <span>Monthly (₹199):</span>
+              <span>₹{(planChartData[0]?.revenue || 0)}</span>
             </p>
-            <p className="flex justify-between gap-2">
-              <span className="font-bold">📺 TV Shows</span>
-              <span className="text-blue-600 font-bold flex"><FaRupeeSign className="mt-1"/>{stats.tvRevenue}</span>
+            <p className="flex justify-between gap-4 font-semibold text-blue-400">
+              <span>Quarterly (₹399):</span>
+              <span>₹{(planChartData[1]?.revenue || 0)}</span>
+            </p>
+            <p className="flex justify-between gap-4 font-semibold text-amber-400">
+              <span>Yearly (₹1499):</span>
+              <span>₹{(planChartData[2]?.revenue || 0)}</span>
             </p>
           </div>
         </div>
       </div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="p-6 rounded-xl bg-white dark:bg-zinc-900 h-[600px] space-y-8 w-full">
-        <h2 className="text-lg font-bold border-b border-gray-200 dark:border-gray-800 py-3">Top Sales</h2>
+        <h2 className="text-lg font-bold border-b border-gray-200 dark:border-gray-800 py-3">Subscription Plans Breakdown</h2>
         <ResponsiveContainer width="100%" height={450}>
       <BarChart
-        data={topContentChart}
+        data={planChartData}
         margin={{
-          top: 0,
-          right: 0,
+          top: 20,
+          right: 20,
           left: 0,
           bottom: 0,
         }}
-        barGap={5}
-        barCategoryGap="10%"
+        barCategoryGap="20%"
       >
-      <XAxis dataKey="rank"/>
+      <XAxis dataKey="name"/>
       <YAxis allowDecimals={false} />
       <Tooltip
-      content={({ active, payload, label }) => {
-        if (!active || !payload?.length) return null;
-        const data = payload[0].payload;
-        return (
-          <div className="rounded-xl border bg-gray-200 dark:bg-zinc-900 p-4 shadow-lg space-y-3 min-w-[200px]">
-            <p className="font-bold text-center">{label}</p>
-                <p className="font-semibold text-blue-500 border-b">
-                  🎬 {data.movieName}
-                </p>
-                <p>{data.movieUsers} Users</p>
-                <p className="font-semibold text-emerald-500 border-b">
-                  📺 {data.tvName}
-                </p>
-                <p>{data.tvUsers} Users</p>
-                </div>
-              );
-            }}
-          />
-          <Legend />
-          <Bar
-            dataKey="movieUsers"
-            name="Movies"
-            fill="#3b82f6"
-            radius={[10, 10, 0, 0]}
-            />
-            <Bar
-              dataKey="tvUsers"
-              name="TV Shows"
-              fill="#10b981"
-              radius={[10, 10, 0, 0]}
-            />
-          </BarChart>
+        content={({ active, payload, label }) => {
+          if (!active || !payload?.length) return null;
+          const data = payload[0].payload;
+          return (
+            <div className="rounded-xl border bg-gray-200 dark:bg-zinc-900 p-4 shadow-lg space-y-2 min-w-[180px]">
+              <p className="font-bold text-center border-b pb-1">{label}</p>
+              <p className="text-sm font-semibold text-emerald-400">Sales: {data.sales} VIP Pass(es)</p>
+              <p className="text-sm font-semibold text-blue-400">Revenue: ₹{data.revenue}</p>
+            </div>
+          );
+        }}
+      />
+      <Legend />
+      <Bar
+        dataKey="revenue"
+        name="Revenue (₹)"
+        fill="#e50914"
+        radius={[10, 10, 0, 0]}
+      />
+      </BarChart>
         </ResponsiveContainer>
       </div>
       <div className="p-6 rounded-xl bg-white dark:bg-zinc-900 h-[600px] w-full space-y-8">
