@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { X, Check, Crown, Zap, ShieldCheck } from "lucide-react";
+import { X, Check, Crown, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { usePaymentHook } from "../hooks/usePaymentHook";
+import { useOutletContext } from "react-router-dom";
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +12,21 @@ interface Props {
 export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [selectedPlan, setSelectedPlan] = useState<"monthly" | "quarterly" | "yearly">("quarterly");
   const { initiatePayment, loading } = usePaymentHook();
+  const { user } = useOutletContext<any>() || {};
+
+  const subscription = user?.subscription || {};
+  const isVipActive =
+    subscription.status === "active" &&
+    subscription.expiresAt &&
+    new Date(subscription.expiresAt) > new Date();
+
+  const formattedExpiry = subscription.expiresAt
+    ? new Date(subscription.expiresAt).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
   if (!isOpen) return null;
 
@@ -60,6 +76,7 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
   ];
 
   const handleSubscribe = async () => {
+    if (isVipActive) return;
     const current = plans.find((p) => p.id === selectedPlan);
     if (!current) return;
 
@@ -98,6 +115,21 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <X className="w-6 h-6" />
           </Button>
         </div>
+
+        {/* ACTIVE VIP BANNER */}
+        {isVipActive && (
+          <div className="bg-emerald-950/60 border-b border-emerald-500/30 px-6 py-3.5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>
+                You currently have an active <strong>{subscription.plan?.toUpperCase()} VIP PASS</strong> valid until {formattedExpiry}.
+              </span>
+            </div>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase">
+              ACTIVE
+            </span>
+          </div>
+        )}
 
         {/* Plans Grid */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-zinc-950">
@@ -167,10 +199,18 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
           <Button
             onClick={handleSubscribe}
-            disabled={loading}
-            className="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-900/30 transition-all"
+            disabled={loading || isVipActive}
+            className={`w-full sm:w-auto px-8 py-3 font-bold text-sm rounded-xl shadow-lg transition-all ${
+              isVipActive
+                ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 cursor-not-allowed"
+                : "bg-red-600 hover:bg-red-700 text-white shadow-red-900/30"
+            }`}
           >
-            {loading ? "Processing..." : `Subscribe Now (₹${plans.find((p) => p.id === selectedPlan)?.price})`}
+            {loading
+              ? "Processing..."
+              : isVipActive
+              ? "✨ VIP Pass Active"
+              : `Subscribe Now (₹${plans.find((p) => p.id === selectedPlan)?.price})`}
           </Button>
         </div>
       </div>

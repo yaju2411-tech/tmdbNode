@@ -40,8 +40,8 @@ const menuItems = [
     link: "/app/watchlist",
   },
   {
-    title: "Receipts",
-    icon: Receipt,
+    title: "VIP Vault",
+    icon: Crown,
     link: "/app/myMovies",
   },
   {
