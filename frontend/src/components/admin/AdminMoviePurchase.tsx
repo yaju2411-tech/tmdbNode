@@ -45,7 +45,7 @@ export const AdminMoviePurchase = () => {
           Sales
         </h2>
         <div className="flex flex-col sm:flex-row gap-5">
-          <select className="px-2 border border-gray-600 rounded-lg dark:bg-zinc-900 text-black dark:text-white"
+          <select className="px-3 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white text-sm outline-none"
             onChange={(e) => { setFilters({ ...filters, type: e.target.value }); setPage(1); }}
           >
             <option value="all">All</option>
@@ -60,7 +60,7 @@ export const AdminMoviePurchase = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="px-3 border border-gray-600 rounded-lg dark:bg-zinc-900 text-white"
+            className="px-4 py-2 border border-gray-200 dark:border-zinc-800 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 text-sm outline-none focus:ring-1 focus:ring-red-600"
           />
         </div>
       </div>

@@ -322,19 +322,19 @@ export const AdminTickets = () => {
 
   return (
     <div className="w-full space-y-6">
-      {/* Category Toggle Tabs */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-2 border-b border-zinc-800/80">
-        <div className="flex items-center bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800/80 shadow-inner">
+      {/* Navigation Sub-Tabs */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-zinc-800 pb-5">
+        <div className="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 w-full sm:w-auto">
           <button
             onClick={() => { setTicketType("account"); resetAllFilters(); }}
             className={`flex items-center gap-2.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${ticketType === "account"
                 ? "bg-gradient-to-r from-red-600 to-[#E50914] text-white shadow-md shadow-red-950/50"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800/50"
               }`}
           >
             <User className="w-4 h-4" />
             Account Issues
-            <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-black/30 border border-white/10 font-bold">
+            <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-black/20 text-white border border-white/10 font-bold">
               {allTickets.filter((t: Ticket) => t.category !== "payment_deducted" && t.category !== "content_not_showing").length}
             </span>
           </button>
@@ -343,12 +343,12 @@ export const AdminTickets = () => {
             onClick={() => { setTicketType("payment"); resetAllFilters(); }}
             className={`flex items-center gap-2.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${ticketType === "payment"
                 ? "bg-gradient-to-r from-red-600 to-[#E50914] text-white shadow-md shadow-red-950/50"
-                : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                : "text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800/50"
               }`}
           >
             <CreditCard className="w-4 h-4" />
             Payment Issues
-            <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-black/30 border border-white/10 font-bold">
+            <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-black/20 text-white border border-white/10 font-bold">
               {allTickets.filter((t: Ticket) => t.category === "payment_deducted" || t.category === "content_not_showing").length}
             </span>
           </button>
@@ -356,33 +356,33 @@ export const AdminTickets = () => {
 
         {/* Quick Stats Metric Cards */}
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 text-xs text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-zinc-400"></span>
-            Total: <strong className="text-white font-bold">{tickets.length}</strong>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/60 text-xs text-gray-700 dark:text-zinc-300 shadow-sm dark:shadow-none">
+            <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-zinc-400"></span>
+            Total: <strong className="text-gray-900 dark:text-white font-bold">{tickets.length}</strong>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-900/30 bg-red-950/20 text-xs text-red-300">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/20 text-xs text-red-700 dark:text-red-300 shadow-sm dark:shadow-none">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            Open: <strong className="text-white font-bold">{openCount}</strong>
+            Open: <strong className="text-red-900 dark:text-white font-bold">{openCount}</strong>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-900/30 bg-amber-950/20 text-xs text-amber-300">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-950/20 text-xs text-amber-700 dark:text-amber-300 shadow-sm dark:shadow-none">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            In Progress: <strong className="text-white font-bold">{inProgressCount}</strong>
+            In Progress: <strong className="text-amber-900 dark:text-white font-bold">{inProgressCount}</strong>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-900/30 bg-emerald-950/20 text-xs text-emerald-300">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/20 text-xs text-emerald-700 dark:text-emerald-300 shadow-sm dark:shadow-none">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Resolved: <strong className="text-white font-bold">{resolvedCount}</strong>
+            Resolved: <strong className="text-emerald-900 dark:text-white font-bold">{resolvedCount}</strong>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-zinc-900/50 p-3 rounded-xl border border-zinc-800">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm dark:shadow-none">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400 dark:text-zinc-400" />
           <Input
             type="text"
             placeholder={ticketType === "payment" ? "Search Ticket ID, Email, Name, Content, Order/Payment ID..." : "Search Ticket ID, User Email, Name..."}
-            className="pl-9 bg-zinc-950/80 border-zinc-800 text-white placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-[#E50914] text-sm rounded-lg"
+            className="pl-9 bg-gray-50 dark:bg-zinc-950/80 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-visible:ring-1 focus-visible:ring-[#E50914] text-sm rounded-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -390,10 +390,10 @@ export const AdminTickets = () => {
 
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px] bg-zinc-950/80 border-zinc-800 text-xs sm:text-sm text-white rounded-lg">
+            <SelectTrigger className="w-[140px] bg-gray-50 dark:bg-zinc-950/80 border-gray-200 dark:border-zinc-800 text-xs sm:text-sm text-gray-900 dark:text-white rounded-lg">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+            <SelectContent className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">🔴 Open</SelectItem>
               <SelectItem value="in_progress">🟡 In Progress</SelectItem>
@@ -403,10 +403,10 @@ export const AdminTickets = () => {
 
           {ticketType === "account" && (
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[160px] bg-zinc-950/80 border-zinc-800 text-xs sm:text-sm text-white rounded-lg">
+              <SelectTrigger className="w-[160px] bg-gray-50 dark:bg-zinc-950/80 border-gray-200 dark:border-zinc-800 text-xs sm:text-sm text-gray-900 dark:text-white rounded-lg">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
+              <SelectContent className="bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white">
                 <SelectItem value="all">All Categories</SelectItem>
                 {Object.entries(categoryLabels)
                   .filter(([k]) => k !== "payment_deducted" && k !== "content_not_showing")
@@ -422,7 +422,7 @@ export const AdminTickets = () => {
               variant="outline"
               size="sm"
               onClick={resetAllFilters}
-              className="border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs gap-1.5 h-9"
+              className="border-gray-200 dark:border-zinc-800 bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white text-xs gap-1.5 h-9"
             >
               <FilterX className="w-3.5 h-3.5" /> Reset
             </Button>
@@ -431,22 +431,22 @@ export const AdminTickets = () => {
       </div>
 
       {/* Main Table Card */}
-      <div className="rounded-xl border border-zinc-800 overflow-hidden bg-zinc-950/90 shadow-xl">
+      <div className="rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950/90 shadow-sm dark:shadow-xl">
         <Table>
-          <TableHeader className="bg-zinc-900/80 border-b border-zinc-800">
-            <TableRow className="hover:bg-transparent border-zinc-800">
-              <TableHead className="w-[160px] text-xs uppercase tracking-wider font-bold text-zinc-400">Ticket ID</TableHead>
-              <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">User</TableHead>
+          <TableHeader className="bg-gray-50 dark:bg-zinc-900/80 border-b border-gray-200 dark:border-zinc-800">
+            <TableRow className="hover:bg-transparent border-gray-200 dark:border-zinc-800">
+              <TableHead className="w-[160px] text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Ticket ID</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">User</TableHead>
               {ticketType === "payment" ? (
                 <>
-                  <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Plan & Amount</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Payment / Receipt ID</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Plan & Amount</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Payment / Receipt ID</TableHead>
                 </>
               ) : (
-                <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Category</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Category</TableHead>
               )}
-              <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Status</TableHead>
-              <TableHead className="text-right text-xs uppercase tracking-wider font-bold text-zinc-400">Actions</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Status</TableHead>
+              <TableHead className="text-right text-xs uppercase tracking-wider font-bold text-gray-500 dark:text-zinc-400">Actions</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -469,20 +469,20 @@ export const AdminTickets = () => {
               paginatedTickets.map((ticket: Ticket) => (
                 <TableRow
                   key={ticket._id}
-                  className="border-b border-zinc-800/60 hover:bg-zinc-900/40 transition-colors group"
+                  className="border-b border-gray-200 dark:border-zinc-800/60 hover:bg-gray-50 dark:hover:bg-zinc-900/40 transition-colors group"
                 >
                   {/* Ticket ID Column */}
                   <TableCell className="font-mono text-xs font-semibold py-3.5">
                     <button
                       onClick={() => copyToClipboard(ticket.ticketId, ticket._id + "tkt")}
-                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-200 transition-colors group-hover:border-red-900/50"
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 text-gray-800 dark:text-zinc-200 transition-colors group-hover:border-red-500/50"
                       title="Click to copy Ticket ID"
                     >
                       <span>{ticket.ticketId}</span>
                       {copiedField === ticket._id + "tkt" ? (
-                        <Check className="w-3 h-3 text-emerald-400" />
+                        <Check className="w-3 h-3 text-emerald-500" />
                       ) : (
-                        <Copy className="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Copy className="w-3 h-3 text-gray-400 dark:text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                     </button>
                   </TableCell>
@@ -490,12 +490,12 @@ export const AdminTickets = () => {
                   {/* User Column */}
                   <TableCell className="py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 flex items-center justify-center text-xs font-bold text-gray-800 dark:text-white shrink-0">
                         {ticket.name ? ticket.name.charAt(0).toUpperCase() : "U"}
                       </div>
                       <div className="flex flex-col min-w-0">
-                        <span className="font-medium text-sm text-zinc-100 truncate">{ticket.name}</span>
-                        <span className="text-xs text-zinc-400 truncate">{ticket.email}</span>
+                        <span className="font-medium text-sm text-gray-900 dark:text-zinc-100 truncate">{ticket.name}</span>
+                        <span className="text-xs text-gray-500 dark:text-zinc-400 truncate">{ticket.email}</span>
                       </div>
                     </div>
                   </TableCell>
@@ -505,10 +505,10 @@ export const AdminTickets = () => {
                     <>
                       <TableCell className="py-3.5">
                         <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-amber-400 shrink-0" />
+                          <CreditCard className="w-4 h-4 text-amber-500 shrink-0" />
                           <div className="flex flex-col">
-                            <span className="font-bold text-xs text-white uppercase">{ticket.plan ? `${ticket.plan} Pass` : "VIP Pass"}</span>
-                            <span className="text-[11px] text-emerald-400 font-semibold">₹{ticket.amount || 399}</span>
+                            <span className="font-bold text-xs text-gray-900 dark:text-white uppercase">{ticket.plan ? `${ticket.plan} Pass` : "VIP Pass"}</span>
+                            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">₹{ticket.amount || 399}</span>
                           </div>
                         </div>
                       </TableCell>
@@ -520,7 +520,7 @@ export const AdminTickets = () => {
                     </>
                   ) : (
                     <TableCell className="py-3.5">
-                      <Badge variant="outline" className="bg-zinc-900 border-zinc-800 text-zinc-300 font-normal text-xs px-2.5 py-0.5">
+                      <Badge variant="outline" className="bg-gray-100 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 font-normal text-xs px-2.5 py-0.5">
                         {categoryLabels[ticket.category] || ticket.category}
                       </Badge>
                     </TableCell>
