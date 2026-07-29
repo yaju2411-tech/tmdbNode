@@ -1,15 +1,54 @@
 import Receipt from "../../models/Receipt.js";
 import Purchase from "../../models/Purchase.js";
 import AppError from "../../utils/appError.js";
+import generateReceiptNumber from "../../utils/generateReceiptNumber.js";
+import mongoose from "mongoose";
 
 export const getReceipt = async (req, res, next) => {
     try {
         const { receiptNumber } = req.params;
-        const receipt = await Receipt.findOne({ receiptNumber })
+        let receipt = await Receipt.findOne({
+            $or: [
+                { receiptNumber: receiptNumber },
+                { razorpayPaymentId: receiptNumber },
+                { razorpayOrderId: receiptNumber }
+            ]
+        })
             .populate("user", "name email avatar")
             .populate("purchase");
+
         if (!receipt) {
-            return next(new AppError("Receipt not found", 404));
+            // Fallback: Check if there is a Purchase record matching paymentId, orderId or purchaseId
+            const isObjId = mongoose.isValidObjectId(receiptNumber);
+            const purchase = await Purchase.findOne({
+                $or: [
+                    { razorpayPaymentId: receiptNumber },
+                    { razorpayOrderId: receiptNumber },
+                    ...(isObjId ? [{ _id: receiptNumber }] : [])
+                ]
+            }).populate("user", "name email avatar");
+
+            if (purchase) {
+                // Auto-create missing Receipt record so user always gets verification details instantly!
+                const newReceiptNo = generateReceiptNumber();
+                receipt = await Receipt.create({
+                    purchase: purchase._id,
+                    user: purchase.user?._id || req.user._id,
+                    receiptNumber: newReceiptNo,
+                    razorpayOrderId: purchase.razorpayOrderId || "ORD-" + Date.now(),
+                    razorpayPaymentId: purchase.razorpayPaymentId || "PAY-" + Date.now(),
+                    contentId: purchase.contentId || 0,
+                    title: purchase.title || "TMDB VIP Pass",
+                    contentType: purchase.contentType || "subscription",
+                    amount: purchase.amount || 399
+                });
+                receipt.user = purchase.user;
+                receipt.purchase = purchase;
+            }
+        }
+
+        if (!receipt) {
+            return next(new AppError("Receipt not found for the given verification ID", 404));
         }
 
         // Map to format expected by frontend
@@ -18,8 +57,8 @@ export const getReceipt = async (req, res, next) => {
             uname: receipt.user?.name || "Customer",
             uemail: receipt.user?.email || "",
             payment_id: receipt.razorpayPaymentId,
-            paid_at: receipt.paidAt,
-            status: receipt.status,
+            paid_at: receipt.paidAt || receipt.createdAt,
+            status: receipt.status || "success",
             content_title: receipt.title,
             order_id: receipt.razorpayOrderId,
             content_type: receipt.contentType,
