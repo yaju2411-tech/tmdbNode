@@ -44,9 +44,22 @@ app.use(passport.initialize());
 app.use(cookieParser());
 
 // CORS
+const clientUrl = (process.env.CLIENT_URL || "").replace(/\/$/, "");
+const allowedOrigins = [
+  clientUrl,
+  "https://tmdb-node.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin.replace(/\/$/, ""))) {
+        return callback(null, true);
+      }
+      return callback(null, origin);
+    },
     credentials: true,
   })
 );
