@@ -1,0 +1,39 @@
+# ===========================
+# Root-level .gitignore
+# ===========================
+
+# Environment variables — NEVER commit these
+.env
+.env.*
+*.env
+!.env.example
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Sensitive credential files
+atlas-credentials.env
+*.csv
+
+# Package lock (optional — keep if you want reproducible installs)
+# package-lock.json
