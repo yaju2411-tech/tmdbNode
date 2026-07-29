@@ -88,11 +88,22 @@ export const submitTicket = async (req, res, next) => {
   try {
     const {
       name, email, category, description,
-      orderId, paymentId, receiptId, contentName, contentId, contentType
+      plan, amount, orderId, paymentId, receiptId
     } = req.body;
 
     if (!name || !email || !category || !description) {
-      return next(new AppError("All fields are required", 400));
+      return next(new AppError("Name, email, category, and description are required", 400));
+    }
+
+    const isPaymentIssue = category === "payment_deducted" || category === "content_not_showing" || category === "purchased_content_not_showing";
+
+    if (isPaymentIssue) {
+      if (!plan) {
+        return next(new AppError("Subscription plan is required for payment support tickets", 400));
+      }
+      if (!amount || Number(amount) <= 0) {
+        return next(new AppError("Plan amount is required for payment support tickets", 400));
+      }
     }
 
     if (description.trim().length < 20) {
@@ -114,48 +125,11 @@ export const submitTicket = async (req, res, next) => {
       }
     }
 
-    const userEmail = email.trim().toLowerCase();
-    const isRequesterOwner = Boolean(
-      req.user && req.user.email && req.user.email.trim().toLowerCase() === userEmail
-    );
-
-    let resolvedOrderId = isRequesterOwner && orderId ? orderId.trim() : null;
-    let resolvedPaymentId = isRequesterOwner && paymentId ? paymentId.trim() : null;
-    let resolvedReceiptId = isRequesterOwner && receiptId ? receiptId.trim() : null;
-    let resolvedContentName = contentName ? contentName.trim() : null;
-    const resolvedContentId = contentId ? contentId.trim() : null;
-    const resolvedContentType = contentType || "movie";
-
-    // Auto-lookup purchase in DB only if the authenticated user matches the ticket email
-    if (isRequesterOwner && req.user && resolvedContentId) {
-      try {
-        const foundPurchase = await Purchase.findOne({
-          user: req.user._id,
-          contentId: Number(resolvedContentId),
-          contentType: resolvedContentType,
-        }).sort({ createdAt: -1 });
-
-        if (foundPurchase) {
-          if (!resolvedOrderId || resolvedOrderId === "N/A") {
-            resolvedOrderId = foundPurchase.razorpayOrderId || null;
-          }
-          if (!resolvedPaymentId || resolvedPaymentId === "N/A") {
-            resolvedPaymentId = foundPurchase.razorpayPaymentId || null;
-          }
-          if (!resolvedContentName) {
-            resolvedContentName = foundPurchase.title || null;
-          }
-
-          const foundReceipt = await Receipt.findOne({ purchase: foundPurchase._id });
-          if (foundReceipt) {
-            if (!resolvedReceiptId) resolvedReceiptId = foundReceipt.receiptNumber || null;
-            if (!resolvedPaymentId || resolvedPaymentId === "N/A") resolvedPaymentId = foundReceipt.razorpayPaymentId || null;
-          }
-        }
-      } catch (lookupErr) {
-        console.error("Purchase auto-lookup error in submitTicket:", lookupErr);
-      }
+    if (isPaymentIssue && proofImagesUrls.length === 0) {
+      return next(new AppError("Payment screenshot proof image is required for billing tickets", 400));
     }
+
+    const userEmail = email.trim().toLowerCase();
 
     const ticketData = {
       name: name.trim(),
@@ -164,12 +138,11 @@ export const submitTicket = async (req, res, next) => {
       description: description.trim(),
     };
 
-    if (resolvedOrderId) ticketData.orderId = resolvedOrderId;
-    if (resolvedPaymentId) ticketData.paymentId = resolvedPaymentId;
-    if (resolvedReceiptId) ticketData.receiptId = resolvedReceiptId;
-    if (resolvedContentName) ticketData.contentName = resolvedContentName;
-    if (resolvedContentId) ticketData.contentId = resolvedContentId;
-    if (resolvedContentType) ticketData.contentType = resolvedContentType;
+    if (plan) ticketData.plan = plan;
+    if (amount) ticketData.amount = Number(amount);
+    if (orderId && orderId.trim()) ticketData.orderId = orderId.trim();
+    if (paymentId && paymentId.trim()) ticketData.paymentId = paymentId.trim();
+    if (receiptId && receiptId.trim()) ticketData.receiptId = receiptId.trim();
     if (proofImagesUrls.length > 0) ticketData.proofImages = proofImagesUrls;
 
     const ticket = await HelpTicket.create(ticketData);

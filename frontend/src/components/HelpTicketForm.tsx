@@ -1,32 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { CheckCircle2, Loader2, Send, X } from "lucide-react";
+import { CheckCircle2, Loader2, Send, X, ShieldAlert, UploadCloud, CreditCard, Sparkles } from "lucide-react";
 import { api } from "../servicies/api-client";
 import { toast } from "sonner";
 
 const CATEGORIES = [
-  { id: "cant_login", label: "Can't Login" },
+  { id: "cant_login", label: "Can't Login to Account" },
   { id: "otp_issues", label: "OTP Not Received / Expired" },
   { id: "google_signin", label: "Google Sign-in Issue" },
-  { id: "payment_deducted", label: "Payment Deducted but Content Locked" },
-  { id: "content_not_showing", label: "Purchased Content Not Showing" },
+  { id: "payment_deducted", label: "Payment Deducted but VIP Locked" },
+  { id: "content_not_showing", label: "VIP Pass Active but Stream Issues" },
   { id: "account_locked", label: "Account Locked" },
   { id: "email_not_verified", label: "Email Not Verified" },
   { id: "password_reset", label: "Password Reset Issue" },
-  { id: "other", label: "Other Issue" },
+  { id: "other", label: "Other General Query" },
 ];
 
 export const HelpTicketForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    category: "",
+    category: "payment_deducted",
     description: "",
+    plan: "quarterly",
+    amount: "399",
     orderId: "",
     paymentId: "",
     receiptId: "",
-    contentName: "",
-    contentId: "",
-    contentType: "movie",
   });
   const [proofImages, setProofImages] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -42,28 +41,39 @@ export const HelpTicketForm = () => {
     };
   }, [proofImages]);
 
+  const handlePlanChange = (planValue: string) => {
+    let amt = "399";
+    if (planValue === "monthly") amt = "199";
+    if (planValue === "yearly") amt = "1499";
+    setFormData((prev) => ({ ...prev, plan: planValue, amount: amt }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.category) {
       toast.error("Please select a category");
       return;
     }
-    if (formData.description.length < 20) {
+    if (formData.description.trim().length < 20) {
       toast.error("Description must be at least 20 characters");
       return;
     }
 
-    if (formData.category === "payment_deducted" || formData.category === "content_not_showing") {
-      if (!formData.contentName.trim()) {
-        toast.error("Content Name is required for this issue type");
+    const isPaymentIssue =
+      formData.category === "payment_deducted" ||
+      formData.category === "content_not_showing";
+
+    if (isPaymentIssue) {
+      if (!formData.plan) {
+        toast.error("Please select your Subscription Plan");
         return;
       }
-      if (!formData.contentId.trim()) {
-        toast.error("TMDB ID is required for this issue type");
+      if (!formData.amount || Number(formData.amount) <= 0) {
+        toast.error("Please enter a valid Plan Amount");
         return;
       }
       if (proofImages.length === 0) {
-        toast.error("Please upload at least one screenshot as proof");
+        toast.error("Please upload at least one payment screenshot as proof");
         return;
       }
     }
@@ -75,7 +85,7 @@ export const HelpTicketForm = () => {
         data.append(key, value);
       });
       if (proofImages.length > 0) {
-        proofImages.forEach(file => {
+        proofImages.forEach((file) => {
           data.append("proofImages", file);
         });
       }
@@ -87,8 +97,7 @@ export const HelpTicketForm = () => {
       }
     } catch (error: any) {
       const errMsg = error.response?.data?.message || "Failed to submit ticket.";
-      const errDetail = error.response?.data?.error || "";
-      toast.error(`${errMsg} ${errDetail}`);
+      toast.error(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -96,28 +105,28 @@ export const HelpTicketForm = () => {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center h-full min-h-[500px]">
-        <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-          <CheckCircle2 size={40} className="text-green-600 dark:text-green-400" />
+      <div className="flex flex-col items-center justify-center p-8 sm:p-12 text-center h-full min-h-[500px] animate-in fade-in duration-300">
+        <div className="w-20 h-20 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mb-6 shadow-xl">
+          <CheckCircle2 size={44} />
         </div>
-        <h2 className="text-2xl font-bold mb-3 dark:text-white">Ticket Submitted Successfully!</h2>
-        <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-6">
-          We've received your request and sent a confirmation to <strong className="text-gray-900 dark:text-gray-200">{formData.email}</strong>. Our support team will get back to you shortly.
+        <h2 className="text-3xl font-extrabold mb-3 dark:text-white">Ticket Submitted!</h2>
+        <p className="text-zinc-400 max-w-md mx-auto mb-6 text-sm">
+          We have received your support request and sent a confirmation email to <strong className="text-white">{formData.email}</strong>. Our billing support team will review your payment proof shortly.
         </p>
-        <div className="bg-gray-50 dark:bg-zinc-950 px-6 py-4 rounded-xl border border-gray-200 dark:border-zinc-800">
-          <span className="text-sm text-gray-500 block mb-1">Your Ticket ID</span>
-          <span className="font-mono text-lg font-semibold text-[#E50914]">{ticketId}</span>
+        <div className="bg-zinc-950 px-6 py-4 rounded-2xl border border-zinc-800 shadow-lg">
+          <span className="text-xs text-zinc-500 block mb-1 uppercase tracking-wider font-semibold">Your Support Ticket ID</span>
+          <span className="font-mono text-xl font-bold text-red-500">{ticketId}</span>
         </div>
         <button
           onClick={() => {
             setSubmitted(false);
-            setFormData({ 
-              name: "", email: "", category: "", description: "",
-              orderId: "", paymentId: "", receiptId: "", contentName: "", contentId: "", contentType: "movie"
+            setFormData({
+              name: "", email: "", category: "payment_deducted", description: "",
+              plan: "quarterly", amount: "399", orderId: "", paymentId: "", receiptId: ""
             });
             setProofImages([]);
           }}
-          className="mt-8 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          className="mt-8 text-sm font-semibold text-red-500 hover:text-red-400 transition-colors underline"
         >
           Submit another ticket
         </button>
@@ -125,49 +134,61 @@ export const HelpTicketForm = () => {
     );
   }
 
+  const isPaymentIssue =
+    formData.category === "payment_deducted" ||
+    formData.category === "content_not_showing";
+
   return (
-    <div className="p-6 sm:p-8 overflow-y-auto max-h-[600px]">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2 dark:text-white">Submit a Ticket</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Fill out the form below and we'll get back to you as soon as possible.</p>
+    <div className="p-6 sm:p-10 overflow-y-auto max-h-[700px] scrollbar-hide space-y-8">
+      <div className="border-b border-zinc-800/80 pb-5">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-600/10 border border-red-600/20 text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
+          <ShieldAlert className="w-3.5 h-3.5" /> Support Helpdesk
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold dark:text-white">Submit a Billing & Support Ticket</h2>
+        <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+          Have an issue with your VIP subscription or payment? Submit your details below for priority support.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* User Info */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Full Name *</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[#E50914] focus:border-transparent outline-none transition-all dark:text-white"
-              placeholder="John Doe"
+              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white transition-all"
+              placeholder="Your full name"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Email Address *</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[#E50914] focus:border-transparent outline-none transition-all dark:text-white"
-              placeholder="john@example.com"
+              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white transition-all"
+              placeholder="your.email@example.com"
             />
           </div>
         </div>
 
+        {/* Category Radio Grid */}
         <div className="space-y-3">
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">What do you need help with?</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Select Issue Type *</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CATEGORIES.map((cat) => (
               <label
                 key={cat.id}
-                className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all ${formData.category === cat.id
-                    ? "border-[#E50914] bg-red-50 dark:bg-red-950/20"
-                    : "border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50"
-                  }`}
+                className={`flex items-center p-3.5 border rounded-xl cursor-pointer transition-all ${
+                  formData.category === cat.id
+                    ? "border-red-600 bg-gradient-to-r from-red-950/40 to-zinc-900 shadow-md ring-1 ring-red-600/40"
+                    : "border-zinc-800/80 bg-zinc-950/60 hover:bg-zinc-900 hover:border-zinc-700"
+                }`}
               >
                 <input
                   type="radio"
@@ -176,11 +197,14 @@ export const HelpTicketForm = () => {
                   className="hidden"
                   onChange={() => setFormData({ ...formData, category: cat.id })}
                 />
-                <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 ${formData.category === cat.id ? "border-[#E50914]" : "border-gray-400"
-                  }`}>
-                  {formData.category === cat.id && <div className="w-2 h-2 rounded-full bg-[#E50914]" />}
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 shrink-0 ${
+                  formData.category === cat.id ? "border-red-500 bg-red-600/20" : "border-zinc-700"
+                }`}>
+                  {formData.category === cat.id && <div className="w-2 h-2 rounded-full bg-red-500" />}
                 </div>
-                <span className={`text-sm ${formData.category === cat.id ? "text-[#E50914] font-medium" : "text-gray-700 dark:text-gray-300"}`}>
+                <span className={`text-xs sm:text-sm ${
+                  formData.category === cat.id ? "text-white font-bold" : "text-zinc-400"
+                }`}>
                   {cat.label}
                 </span>
               </label>
@@ -188,104 +212,129 @@ export const HelpTicketForm = () => {
           </div>
         </div>
 
-        {(formData.category === "payment_deducted" || formData.category === "content_not_showing") && (
-          <div className="p-5 bg-gray-50 dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-800 space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Payment Details (Optional but Recommended)</h3>
+        {/* Subscription Payment Details Section */}
+        {isPaymentIssue && (
+          <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-5 shadow-xl">
+            <div className="flex items-center gap-2 border-b border-zinc-800/80 pb-3">
+              <CreditCard className="w-4 h-4 text-red-500" />
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Subscription & Payment Details</h3>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Plan Required */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Content Name (Movie/TV)</label>
+                <label className="text-xs font-bold text-zinc-300">Subscription Plan *</label>
+                <select
+                  value={formData.plan}
+                  onChange={(e) => handlePlanChange(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-white font-semibold"
+                >
+                  <option value="monthly">Monthly Pass (₹199)</option>
+                  <option value="quarterly">Quarterly VIP (₹399)</option>
+                  <option value="yearly">Annual VIP (₹1499)</option>
+                </select>
+              </div>
+
+              {/* Amount Required */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-300">Amount Paid (₹) *</label>
                 <input
-                  type="text"
-                  value={formData.contentName}
-                  onChange={(e) => setFormData({ ...formData, contentName: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white"
-                  placeholder="e.g. Inception"
+                  type="number"
+                  required
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-white font-semibold"
+                  placeholder="e.g. 399"
                 />
               </div>
-              <div className="space-y-1.5 flex gap-2">
-                <div className="flex-1">
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">TMDB ID</label>
-                  <input
-                    type="text"
-                    value={formData.contentId}
-                    onChange={(e) => setFormData({ ...formData, contentId: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white"
-                    placeholder="e.g. 27205"
-                  />
-                </div>
-                <div className="w-24">
-                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Type</label>
-                  <select
-                    value={formData.contentType}
-                    onChange={(e) => setFormData({ ...formData, contentType: e.target.value })}
-                    className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white"
-                  >
-                    <option value="movie">Movie</option>
-                    <option value="tv">TV</option>
-                  </select>
-                </div>
-              </div>
+
+              {/* Optional IDs */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Payment ID</label>
-                <input
-                  type="text"
-                  value={formData.paymentId}
-                  onChange={(e) => setFormData({ ...formData, paymentId: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white"
-                  placeholder="pay_xxxxxxxx"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Order ID</label>
+                <label className="text-xs font-semibold text-zinc-400">Order ID (Optional)</label>
                 <input
                   type="text"
                   value={formData.orderId}
                   onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                  className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white"
+                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
                   placeholder="order_xxxxxxxx"
                 />
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-zinc-400">Payment ID (Optional)</label>
+                <input
+                  type="text"
+                  value={formData.paymentId}
+                  onChange={(e) => setFormData({ ...formData, paymentId: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
+                  placeholder="pay_xxxxxxxx"
+                />
+              </div>
+
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-semibold text-zinc-400">Receipt ID (Optional)</label>
+                <input
+                  type="text"
+                  value={formData.receiptId}
+                  onChange={(e) => setFormData({ ...formData, receiptId: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
+                  placeholder="REC-2026-XXXXX"
+                />
+              </div>
             </div>
-            <div className="space-y-1.5 mt-2">
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Payment Screenshots (Proof) - Up to 5</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={(e) => {
-                  if (e.target.files) {
-                    const newFiles = Array.from(e.target.files);
-                    setProofImages(prev => {
-                      const combined = [...prev, ...newFiles];
-                      if (combined.length > 5) {
-                        toast.error("You can only upload up to 5 images in total");
-                        return prev;
-                      }
-                      return combined;
-                    });
-                    // Reset input so same file can be selected again if needed
-                    e.target.value = "";
-                  }
-                }}
-                className="w-full px-3 py-2 bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md focus:ring-1 focus:ring-[#E50914] outline-none text-sm dark:text-white file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:bg-red-50 file:text-red-700 hover:file:bg-red-100 dark:file:bg-red-950/30 dark:file:text-red-400"
-              />
+
+            {/* Upload Proof Images Required */}
+            <div className="space-y-2 pt-2">
+              <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
+                <span>Payment Screenshot Proof (Required *)</span>
+                <span className="text-[10px] text-zinc-500 font-normal">Up to 5 images</span>
+              </label>
+
+              <div className="relative border-2 border-dashed border-zinc-800 hover:border-red-600/50 rounded-2xl p-6 text-center transition-all bg-zinc-900/40">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files);
+                      setProofImages((prev) => {
+                        const combined = [...prev, ...newFiles];
+                        if (combined.length > 5) {
+                          toast.error("You can only upload up to 5 images");
+                          return prev;
+                        }
+                        return combined;
+                      });
+                      e.target.value = "";
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <UploadCloud className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                <p className="text-xs text-zinc-300 font-semibold">
+                  Click or drag payment screenshots here to upload
+                </p>
+                <p className="text-[10px] text-zinc-500 mt-1">PNG, JPG, JPEG formats allowed</p>
+              </div>
+
               {proofImages.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-xs text-gray-500">{proofImages.length} file(s) selected</p>
+                  <p className="text-xs text-emerald-400 font-semibold">{proofImages.length} image proof(s) attached</p>
                   <div className="flex flex-wrap gap-3">
-                    {proofImages.map((file, index) => (
-                      <div key={index} className="relative group rounded-md overflow-hidden border border-gray-200 dark:border-zinc-800 w-20 h-20 shadow-sm">
-                        <img 
-                          src={previewUrls[index]} 
-                          alt={`Preview ${index}`} 
+                    {proofImages.map((_, index) => (
+                      <div key={index} className="relative group rounded-xl overflow-hidden border border-zinc-800 w-20 h-20 shadow-md">
+                        <img
+                          src={previewUrls[index]}
+                          alt={`Preview ${index}`}
                           className="w-full h-full object-cover"
                         />
                         <button
                           type="button"
                           onClick={() => {
-                            setProofImages(prev => prev.filter((_, i) => i !== index));
+                            setProofImages((prev) => prev.filter((_, i) => i !== index));
                           }}
-                          className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-1 right-1 bg-black/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X size={12} />
                         </button>
@@ -298,30 +347,31 @@ export const HelpTicketForm = () => {
           </div>
         )}
 
+        {/* Issue Description */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Describe Your Issue *</label>
           <textarea
             required
             rows={4}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-lg focus:ring-2 focus:ring-[#E50914] focus:border-transparent outline-none transition-all dark:text-white resize-none"
-            placeholder="Please provide as much detail as possible about your issue..."
+            className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white resize-none transition-all"
+            placeholder="Please provide details about your subscription issue..."
           />
-          <p className="text-xs text-gray-500">Minimum 20 characters.</p>
+          <p className="text-[10px] text-zinc-500">Minimum 20 characters.</p>
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3.5 bg-[#E50914] hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+          className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
         >
           {isSubmitting ? (
             <Loader2 className="animate-spin" size={20} />
           ) : (
             <>
               <Send size={18} />
-              Submit Ticket
+              Submit Support Ticket
             </>
           )}
         </button>
@@ -329,3 +379,5 @@ export const HelpTicketForm = () => {
     </div>
   );
 };
+
+export default HelpTicketForm;

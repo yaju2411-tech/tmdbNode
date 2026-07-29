@@ -437,7 +437,7 @@ export const AdminTickets = () => {
               <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">User</TableHead>
               {ticketType === "payment" ? (
                 <>
-                  <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Content Name</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Plan & Amount</TableHead>
                   <TableHead className="text-xs uppercase tracking-wider font-bold text-zinc-400">Payment / Receipt ID</TableHead>
                 </>
               ) : (
@@ -498,21 +498,15 @@ export const AdminTickets = () => {
                     </div>
                   </TableCell>
 
-                  {/* Content / Category Column */}
+                  {/* Plan & Amount Column */}
                   {ticketType === "payment" ? (
                     <>
                       <TableCell className="py-3.5">
                         <div className="flex items-center gap-2">
-                          {ticket.contentType === "tv" ? (
-                            <Tv className="w-4 h-4 text-blue-400 shrink-0" />
-                          ) : (
-                            <Film className="w-4 h-4 text-red-400 shrink-0" />
-                          )}
+                          <CreditCard className="w-4 h-4 text-amber-400 shrink-0" />
                           <div className="flex flex-col">
-                            <span className="font-medium text-sm text-zinc-200">{ticket.contentName || "Unknown Content"}</span>
-                            {ticket.contentId && (
-                              <span className="text-[11px] text-zinc-500 font-mono">ID: {ticket.contentId} ({ticket.contentType || "movie"})</span>
-                            )}
+                            <span className="font-bold text-xs text-white uppercase">{ticket.plan ? `${ticket.plan} Pass` : "VIP Pass"}</span>
+                            <span className="text-[11px] text-emerald-400 font-semibold">₹{ticket.amount || 399}</span>
                           </div>
                         </div>
                       </TableCell>

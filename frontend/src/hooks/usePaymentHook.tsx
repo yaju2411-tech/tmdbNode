@@ -189,36 +189,16 @@ export const usePayment = () => {
         name: "TMDB VIP Subscription",
         description: title,
 
-        handler: async function (response: any) {
+        handler: function (response: any) {
           isPaymentSuccessful = true;
-          await verifyPayment(response, id, contentType, title);
+          verifyPayment(response, id, contentType, title);
         },
         modal: {
           ondismiss: async () => {
             if (isPaymentSuccessful) return;
             dispatch({
               type: "FAIL",
-              payload: "Payment cancelled",
-            });
-            toast.error("Payment Cancelled", {
-              description: `If your money was deducted but content is locked, submit a ticket.\nContent Name: ${title}\nOrder ID: ${order.id}`,
-              action: {
-                label: "Copy ID",
-                onClick: () => navigator.clipboard.writeText(String(order.id)),
-              },
-              duration: Number.POSITIVE_INFINITY,
-              closeButton: true,
-            });
-            try {
-              await api.post("/payment/update-status", {
-                orderId: order.id,
-                status: "failed",
-              });
-            } catch (cancelErr) {
-              console.error("Failed to cancel payment status:", cancelErr);
-            }
-            await queryClient.invalidateQueries({
-              queryKey: ["purchase-status", String(id), String(contentType)],
+              payload: "Payment process closed",
             });
           },
         },

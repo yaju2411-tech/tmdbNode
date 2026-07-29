@@ -48,13 +48,12 @@ const helpTicketSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    // New fields for payment issues
+    // Subscription payment issue fields
+    plan: { type: String, enum: ["monthly", "quarterly", "yearly"] },
+    amount: { type: Number },
     orderId: { type: String, trim: true },
     paymentId: { type: String, trim: true },
     receiptId: { type: String, trim: true },
-    contentName: { type: String, trim: true },
-    contentId: { type: String, trim: true },
-    contentType: { type: String, enum: ["movie", "tv"] },
     proofImages: [{ type: String }],
   },
   { timestamps: true }
