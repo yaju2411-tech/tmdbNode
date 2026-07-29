@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
-import { supabase } from "./api-client";
-import {Navigate} from "react-router-dom";
+import { api } from "./api-client";
+import { Navigate } from "react-router-dom";
 import React from "react";
 
-export const ProtectedRoutes = async({children}:any) => {
-    const [session,setSession] = useState<any>(undefined);
+export const ProtectedRoutes = ({children}:any) => {
+    const [user, setUser] = useState<any>(undefined);
 
-    useEffect(()=>{
-    supabase.auth.getSession().then(({data})=>{
-      setSession(data.session);
-    });
-    },[]);
+    useEffect(() => {
+        api.get("/auth/me")
+            .then(({ data }) => {
+                setUser(data.user || null);
+            })
+            .catch(() => {
+                setUser(null);
+            });
+    }, []);
 
-    if(session === undefined) return <p>Loading...</p>
-    return session ? children : <Navigate to={"/loginPage"}/> 
+    if (user === undefined) return <p>Loading...</p>;
+    return user ? children : <Navigate to={"/loginPage"} />;
 };
