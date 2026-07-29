@@ -10,12 +10,12 @@ const purchaseSchema = new mongoose.Schema(
 
     contentId:{
         type:Number,
-        required:true,
+        default:0,
     },
 
     title:{
         type:String,
-        required:true,
+        default:"TMDB VIP Subscription",
     },
 
     poster:{
@@ -25,8 +25,23 @@ const purchaseSchema = new mongoose.Schema(
 
     contentType:{
         type:String,
-        enum:["movie","tv"],
-        required:true,
+        default:"subscription",
+    },
+
+    plan:{
+        type:String,
+        enum:["monthly", "quarterly", "yearly", "custom"],
+        default:"monthly",
+    },
+
+    startDate:{
+        type:Date,
+        default:null,
+    },
+
+    expiresAt:{
+        type:Date,
+        default:null,
     },
 
     amount:{
@@ -56,12 +71,6 @@ const purchaseSchema = new mongoose.Schema(
 },
 {
     timestamps:true,
-});
-
-purchaseSchema.index({
-    user:1,contentId:1,contentType:1
-},{
-    unique:true
 });
 
 export default mongoose.model("Purchase",purchaseSchema);

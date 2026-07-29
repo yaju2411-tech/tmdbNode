@@ -804,3 +804,92 @@ export const checkRazorpayStatus = async (req, res, next) => {
         next(err);
     }
 };
+
+// Admin manually grant/extend/cancel user subscription
+export const updateUserSubscription = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+        const { status, plan, days = 30 } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return next(new AppError("User not found", 404));
+        }
+
+        const now = new Date();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + Number(days));
+
+        user.subscription = {
+            status: status || "active",
+            plan: plan || "monthly",
+            startDate: now,
+            expiresAt,
+            razorpayOrderId: "admin_manual_grant",
+            razorpayPaymentId: "admin_manual_grant"
+        };
+
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: `User subscription updated successfully. Valid for ${days} days.`,
+            subscription: user.subscription
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Analytics Data for Recharts Dashboard
+export const getSubscriptionAnalytics = async (req, res, next) => {
+    try {
+        const totalUsers = await User.countDocuments({ role: "user" });
+        const now = new Date();
+
+        const activeSubscribers = await User.countDocuments({
+            "subscription.status": "active",
+            "subscription.expiresAt": { $gt: now }
+        });
+
+        const expiredSubscribers = await User.countDocuments({
+            $or: [
+                { "subscription.status": "expired" },
+                { "subscription.expiresAt": { $lte: now } }
+            ]
+        });
+
+        const monthlyPlanCount = await User.countDocuments({ "subscription.plan": "monthly", "subscription.status": "active" });
+        const quarterlyPlanCount = await User.countDocuments({ "subscription.plan": "quarterly", "subscription.status": "active" });
+        const yearlyPlanCount = await User.countDocuments({ "subscription.plan": "yearly", "subscription.status": "active" });
+
+        const purchases = await Purchase.find({ status: "paid" });
+
+        const totalRevenue = purchases.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+        const planRevenueData = [
+            { name: "Monthly (₹199)", value: monthlyPlanCount * 199, count: monthlyPlanCount },
+            { name: "Quarterly (₹399)", value: quarterlyPlanCount * 399, count: quarterlyPlanCount },
+            { name: "Yearly (₹1499)", value: yearlyPlanCount * 1499, count: yearlyPlanCount }
+        ];
+
+        const subscriberStatusData = [
+            { name: "Active VIP", count: activeSubscribers },
+            { name: "Expired / Free", count: totalUsers - activeSubscribers }
+        ];
+
+        return res.json({
+            success: true,
+            analytics: {
+                totalUsers,
+                activeSubscribers,
+                expiredSubscribers,
+                totalRevenue,
+                planRevenueData,
+                subscriberStatusData
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};

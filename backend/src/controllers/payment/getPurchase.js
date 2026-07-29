@@ -22,23 +22,48 @@ export const getPurchases = async (req, res, next) => {
 
 export const checkPurchase = async (req, res, next) => {
     try {
-        const { contentId, contentType } = req.query;
-        if (!contentId || !contentType) {
-            return res.status(400).json({
-                success: false,
-                message: "contentId and contentType are required"
+        const user = req.user;
+        const now = new Date();
+
+        // Check if user has an active subscription that hasn't expired
+        const isSubscribed = user.subscription && 
+                             user.subscription.status === "active" && 
+                             user.subscription.expiresAt && 
+                             new Date(user.subscription.expiresAt) > now;
+
+        if (isSubscribed) {
+            return res.json({
+                success: true,
+                status: "success",
+                isSubscribed: true,
+                subscription: user.subscription
             });
         }
 
-        const purchase = await Purchase.findOne({
-            user: req.user._id,
-            contentId: Number(contentId),
-            contentType: contentType
-        }).sort({ createdAt: -1 });
+        const { contentId, contentType } = req.query;
+
+        // Check individual purchases as legacy fallback
+        if (contentId && contentType) {
+            const purchase = await Purchase.findOne({
+                user: req.user._id,
+                contentId: Number(contentId),
+                contentType: contentType
+            }).sort({ createdAt: -1 });
+
+            if (purchase && (purchase.status === "paid" || purchase.status === "success")) {
+                return res.json({
+                    success: true,
+                    status: "success",
+                    isSubscribed: false
+                });
+            }
+        }
 
         return res.json({
             success: true,
-            status: purchase ? (purchase.status === "paid" ? "success" : purchase.status) : null
+            status: null,
+            isSubscribed: false,
+            subscription: user.subscription || null
         });
     } catch (err) {
         next(err);

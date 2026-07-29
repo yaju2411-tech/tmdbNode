@@ -5,22 +5,26 @@ export const useCheckePurchased = (movieId: string | undefined, type: "movie" | 
   const query = useQuery({
     queryKey: ["purchase-status", movieId, type],
     queryFn: async () => {
-      if (!movieId) return null;
       const res = await api.get("/payment/check", {
         params: {
-          contentId: movieId,
+          contentId: movieId || "0",
           contentType: type
         }
       });
-      return res.data.status || null;
+      return {
+        status: res.data.status || null,
+        isSubscribed: !!res.data.isSubscribed,
+        subscription: res.data.subscription || null
+      };
     },
-    enabled: !!movieId,
     staleTime: 5 * 1000,
     refetchOnWindowFocus: true,
   });
 
   return {
-    status: query.data,
+    status: query.data?.status || null,
+    isSubscribed: !!query.data?.isSubscribed,
+    subscription: query.data?.subscription || null,
     loading: query.isLoading,
     refetch: query.refetch,
   };

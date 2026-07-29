@@ -69,7 +69,7 @@ export const usePayment = () => {
   const verifyPayment = async (
     response: any,
     id: number,
-    contentType: "movie" | "tv",
+    contentType: "movie" | "tv" | "subscription",
     title: string
   ) => {
     try {
@@ -98,7 +98,7 @@ export const usePayment = () => {
       }
 
       await queryClient.invalidateQueries({
-        queryKey: ["purchase-status", String(id), contentType],
+        queryKey: ["purchase-status", String(id), String(contentType)],
       });
       dispatch({ type: "SUCCESS" });
 
@@ -124,7 +124,7 @@ export const usePayment = () => {
         closeButton: true,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["purchase-status", String(id), contentType],
+        queryKey: ["purchase-status", String(id), String(contentType)],
       });
     }
   };
@@ -134,8 +134,9 @@ export const usePayment = () => {
     id: number,
     title: string,
     amount: number,
-    posterPath: string,
-    contentType: "movie" | "tv"
+    posterPath: string = "",
+    contentType: "movie" | "tv" | "subscription" = "subscription",
+    plan: "monthly" | "quarterly" | "yearly" = "monthly"
   ) => {
     try {
       dispatch({ type: "START" });
@@ -150,29 +151,17 @@ export const usePayment = () => {
         return;
       }
 
-      // Check if already purchased or pending via backend `/check` endpoint
-      const checkRes = await api.get("/payment/check", {
-        params: {
-          contentId: id,
-          contentType,
-        },
+      // CREATE ORDER
+      const res = await api.post("/payment/create-order", {
+        contentId: id || 0,
+        title,
+        poster: posterPath,
+        contentType,
+        amount,
+        plan,
       });
 
-      const existingStatus = checkRes.data.status;
-      if (existingStatus === "success") {
-        dispatch({ type: "RESET" });
-        return;
-      }
-      if (existingStatus === "pending") {
-        dispatch({
-          type: "FAIL",
-          payload: "Payment already in progress",
-        });
-        return;
-      }
-
-      // CREATE ORDER
-      const order = await createOrder(id, title, posterPath, contentType, amount);
+      const order = res.data.order;
       if (!order?.id) {
         dispatch({
           type: "FAIL",
@@ -182,17 +171,17 @@ export const usePayment = () => {
       }
 
       await queryClient.invalidateQueries({
-        queryKey: ["purchase-status", String(id), contentType],
+        queryKey: ["purchase-status", String(id), String(contentType)],
       });
 
       let isPaymentSuccessful = false;
 
       const options = {
-        key: (order as any).key || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TJB5GvLQsk8Nw8",
+        key: (order as any).key || res.data.key || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TJB5GvLQsk8Nw8",
         amount: order.amount,
         currency: "INR",
         order_id: order.id,
-        name: "TMDB",
+        name: "TMDB VIP Subscription",
         description: title,
 
         handler: async function (response: any) {
@@ -207,10 +196,10 @@ export const usePayment = () => {
               payload: "Payment cancelled",
             });
             toast.error("Payment Cancelled", {
-              description: `If your money was deducted but content is locked, submit a ticket.\nContent Name: ${title}\nContent ID: ${id}\nOrder ID: ${order.id}`,
+              description: `If your money was deducted but content is locked, submit a ticket.\nContent Name: ${title}\nOrder ID: ${order.id}`,
               action: {
                 label: "Copy ID",
-                onClick: () => navigator.clipboard.writeText(String(id)),
+                onClick: () => navigator.clipboard.writeText(String(order.id)),
               },
               duration: Number.POSITIVE_INFINITY,
               closeButton: true,
@@ -224,7 +213,7 @@ export const usePayment = () => {
               console.error("Failed to cancel payment status:", cancelErr);
             }
             await queryClient.invalidateQueries({
-              queryKey: ["purchase-status", String(id), contentType],
+              queryKey: ["purchase-status", String(id), String(contentType)],
             });
           },
         },
@@ -241,8 +230,32 @@ export const usePayment = () => {
     }
   };
 
+  const initiatePayment = async (options: {
+    id?: number;
+    title: string;
+    contentType?: "movie" | "tv" | "subscription";
+    amount: number;
+    plan?: "monthly" | "quarterly" | "yearly";
+    posterPath?: string;
+  }) => {
+    return startPayment(
+      options.id || 0,
+      options.title,
+      options.amount,
+      options.posterPath || "",
+      options.contentType || "subscription",
+      options.plan || "monthly"
+    );
+  };
+
   return {
     state,
     startPayment,
+    initiatePayment,
+    loading: state.loading,
+    success: state.success,
+    error: state.error,
   };
 };
+
+export const usePaymentHook = usePayment;

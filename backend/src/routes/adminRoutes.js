@@ -2,7 +2,8 @@ import express from "express";
 import {
     getAdmins, getUsers, getMoviePurchases, getStats, updateUserByAdmin, updateAdmin,
     deleteUserByAdmin, forceVerifyUser, getTickets, updateTicketStatus, deleteTicket,
-    grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus
+    grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus,
+    updateUserSubscription, getSubscriptionAnalytics
 } from "../controllers/admin/adminController.js";
 import protect from "../middleware/authMiddlware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
@@ -19,6 +20,8 @@ router.get("/admins", getAdmins);
 router.get("/users", getUsers);
 router.get("/purchases", getMoviePurchases);
 router.get("/stats", getStats);
+router.get("/subscription-analytics", getSubscriptionAnalytics);
+router.put("/users/:userId/subscription", updateUserSubscription);
 
 router.post("/user/force-verify", forceVerifyUser);
 router.put("/user/:id", upload.single("avatar"), updateUserByAdmin);

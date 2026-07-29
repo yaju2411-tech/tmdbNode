@@ -4,48 +4,44 @@ import Purchase from "../../models/Purchase.js";
 
 export const createOrder = async (req, res, next) => {
     try {
-        const {contentId,title,poster,contentType,amount} = req.body;
-        if (!contentId || !title || !contentType || !amount) {
-            return next(new AppError("Missing fields",400));
-        }
+        const { plan = "monthly", contentId = 0, title, poster = "", contentType = "subscription", amount } = req.body;
+        
+        let planAmount = 199;
+        let planTitle = "TMDB VIP Monthly Pass";
 
-        // Check if content is already purchased
-        const existing = await Purchase.findOne({
-            user: req.user._id,
-            contentId: Number(contentId),
-            contentType: contentType
-        });
-
-        if (existing && existing.status === "paid") {
-            return next(new AppError("You already purchased this content.", 409));
+        if (plan === "monthly") {
+            planAmount = 199;
+            planTitle = "TMDB VIP Monthly Pass";
+        } else if (plan === "quarterly") {
+            planAmount = 399;
+            planTitle = "TMDB VIP Quarterly Pass";
+        } else if (plan === "yearly") {
+            planAmount = 1499;
+            planTitle = "TMDB VIP Annual Pass";
+        } else if (amount) {
+            planAmount = amount;
+            planTitle = title || "TMDB VIP Subscription";
         }
 
         const order = await razorpay.orders.create({
-            amount: amount * 100,
+            amount: planAmount * 100,
             currency: "INR",
-            receipt: `order_${Date.now()}`,
-            notes: {userId: req.user._id.toString(),contentId,title,poster,contentType,amount}
+            receipt: `sub_${Date.now()}`,
+            notes: { userId: req.user._id.toString(), plan, title: planTitle, amount: planAmount }
         });
 
-        // Save/Update pending purchase in database
-        await Purchase.findOneAndUpdate(
-            {
-                user: req.user._id,
-                contentId: Number(contentId),
-                contentType: contentType
-            },
-            {
-                user: req.user._id,
-                contentId: Number(contentId),
-                title,
-                poster,
-                contentType,
-                amount,
-                razorpayOrderId: order.id,
-                status: "pending"
-            },
-            { upsert: true, new: true }
-        );
+        // Save pending purchase / subscription order
+        await Purchase.create({
+            user: req.user._id,
+            contentId: Number(contentId) || 0,
+            title: planTitle,
+            poster,
+            contentType,
+            plan,
+            amount: planAmount,
+            razorpayOrderId: order.id,
+            status: "pending"
+        });
 
         return res.status(201).json({
             success: true,

@@ -60,33 +60,52 @@ export const UserAdminTable = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>VIP Subscription</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u: any) => (
-              <TableRow key={u.id}>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-3">
-                      <img src={u.avatar_url || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"} alt="" className="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-zinc-800" />
-                      <span className="font-medium text-gray-900 dark:text-gray-200">{u.name}</span>
+            {users.map((u: any) => {
+              const sub = u.subscription || {};
+              const isSubActive = sub.status === "active" && sub.expiresAt && new Date(sub.expiresAt) > new Date();
+
+              return (
+                <TableRow key={u.id}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-3">
+                        <img src={u.avatar_url || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"} alt="" className="w-8 h-8 rounded-full object-cover border border-gray-300 dark:border-zinc-800" />
+                        <span className="font-medium text-gray-900 dark:text-gray-200">{u.name}</span>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-500 dark:text-gray-400">{u.email}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => handleEdit(u)} className="p-2 text-gray-400 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-md transition-colors inline-block" title="Edit">
-                      <Edit size={16} />
-                    </button>
-                    <button onClick={() => handleDelete(u.id)} className="p-2 border border-transparent text-[#E50914] hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors" title="Delete">
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell className="text-gray-500 dark:text-gray-400">{u.email}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                        isSubActive
+                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                          : "bg-zinc-800 text-zinc-400"
+                      }`}
+                    >
+                      {isSubActive
+                        ? `VIP (${sub.plan?.toUpperCase()})`
+                        : "Free / Expired"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handleEdit(u)} className="p-2 text-gray-400 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-200 dark:hover:bg-zinc-800 rounded-md transition-colors inline-block" title="Edit">
+                        <Edit size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(u.id)} className="p-2 border border-transparent text-[#E50914] hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md transition-colors" title="Delete">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>

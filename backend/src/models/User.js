@@ -44,6 +44,34 @@ const userSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
     },
+    subscription: {
+        status: {
+            type: String,
+            enum: ["none", "active", "expired", "cancelled"],
+            default: "none",
+        },
+        plan: {
+            type: String,
+            enum: ["none", "monthly", "quarterly", "yearly"],
+            default: "none",
+        },
+        startDate: {
+            type: Date,
+            default: null,
+        },
+        expiresAt: {
+            type: Date,
+            default: null,
+        },
+        razorpayOrderId: {
+            type: String,
+            default: "",
+        },
+        razorpayPaymentId: {
+            type: String,
+            default: "",
+        },
+    },
   },
   {
     timestamps: true,
