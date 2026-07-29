@@ -17,7 +17,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   title,
   type,
 }) => {
-  const [server, setServer] = useState<"vidsrc_cc" | "vidlink" | "vidsrc_icu" | "vidsrc_pro" | "embed2" | "autoembed">("vidsrc_cc");
+  const [server, setServer] = useState<"smashystream" | "vidsrc_cc" | "vidlink" | "autoembed" | "embed2">("smashystream");
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
 
@@ -58,37 +58,33 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   const getEmbedUrl = () => {
     if (type === "movie") {
       switch (server) {
+        case "smashystream":
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/movie/${id}`;
         case "vidlink":
           return `https://vidlink.pro/movie/${id}`;
-        case "vidsrc_icu":
-          return `https://vidsrc.icu/embed/movie/${id}`;
-        case "vidsrc_pro":
-          return `https://vidsrc.pro/embed/movie/${id}`;
-        case "embed2":
-          return `https://www.2embed.cc/embed/${id}`;
         case "autoembed":
           return `https://player.autoembed.cc/embed/movie/${id}`;
+        case "embed2":
+          return `https://www.2embed.cc/embed/${id}`;
         default:
-          return `https://vidsrc.cc/v2/embed/movie/${id}`;
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
       }
     } else {
       switch (server) {
+        case "smashystream":
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
         case "vidlink":
           return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
-        case "vidsrc_icu":
-          return `https://vidsrc.icu/embed/tv/${id}/${season}/${episode}`;
-        case "vidsrc_pro":
-          return `https://vidsrc.pro/embed/tv/${id}/${season}/${episode}`;
-        case "embed2":
-          return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         case "autoembed":
           return `https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}`;
+        case "embed2":
+          return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         default:
-          return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
       }
     }
   };
@@ -177,6 +173,16 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
             <Server className="w-3.5 h-3.5 text-red-600 dark:text-red-500" /> Server:
           </span>
           <button
+            onClick={() => setServer("smashystream")}
+            className={`px-3 py-1 rounded-lg font-bold transition-all ${
+              server === "smashystream"
+                ? "bg-red-600 text-white shadow-md shadow-red-600/30"
+                : "bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
+            }`}
+          >
+            SmashyStream (Primary HD)
+          </button>
+          <button
             onClick={() => setServer("vidsrc_cc")}
             className={`px-3 py-1 rounded-lg font-bold transition-all ${
               server === "vidsrc_cc"
@@ -184,7 +190,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
                 : "bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
-            VidSrc CC (Primary HD)
+            VidSrc CC
           </button>
           <button
             onClick={() => setServer("vidlink")}
@@ -197,24 +203,14 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
             VidLink
           </button>
           <button
-            onClick={() => setServer("vidsrc_icu")}
+            onClick={() => setServer("autoembed")}
             className={`px-3 py-1 rounded-lg font-bold transition-all ${
-              server === "vidsrc_icu"
+              server === "autoembed"
                 ? "bg-red-600 text-white shadow-md shadow-red-600/30"
                 : "bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
-            VidSrc ICU
-          </button>
-          <button
-            onClick={() => setServer("vidsrc_pro")}
-            className={`px-3 py-1 rounded-lg font-bold transition-all ${
-              server === "vidsrc_pro"
-                ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                : "bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            VidSrc PRO
+            AutoEmbed (AE HD)
           </button>
           <button
             onClick={() => setServer("embed2")}
@@ -225,16 +221,6 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
             }`}
           >
             2Embed Backup
-          </button>
-          <button
-            onClick={() => setServer("autoembed")}
-            className={`px-3 py-1 rounded-lg font-bold transition-all ${
-              server === "autoembed"
-                ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                : "bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-800 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            AutoEmbed (AE HD)
           </button>
         </div>
       </div>
