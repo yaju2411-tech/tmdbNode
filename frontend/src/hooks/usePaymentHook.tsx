@@ -185,6 +185,8 @@ export const usePayment = () => {
         queryKey: ["purchase-status", String(id), contentType],
       });
 
+      let isPaymentSuccessful = false;
+
       const options = {
         key: (order as any).key || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TJB5GvLQsk8Nw8",
         amount: order.amount,
@@ -194,10 +196,12 @@ export const usePayment = () => {
         description: title,
 
         handler: async function (response: any) {
+          isPaymentSuccessful = true;
           await verifyPayment(response, id, contentType, title);
         },
         modal: {
           ondismiss: async () => {
+            if (isPaymentSuccessful) return;
             dispatch({
               type: "FAIL",
               payload: "Payment cancelled",

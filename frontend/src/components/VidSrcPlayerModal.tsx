@@ -27,7 +27,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
     if (type === "movie") {
       switch (server) {
         case "smashystream":
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
+          return `https://embed.smashystream.com/player.php?tmdb=${id}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/movie/${id}`;
         case "vidsrc_icu":
@@ -37,12 +37,12 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embed/${id}`;
         default:
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
+          return `https://embed.smashystream.com/player.php?tmdb=${id}`;
       }
     } else {
       switch (server) {
         case "smashystream":
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
+          return `https://embed.smashystream.com/player.php?tmdb=${id}&season=${season}&episode=${episode}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
         case "vidsrc_icu":
@@ -52,7 +52,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         default:
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
+          return `https://embed.smashystream.com/player.php?tmdb=${id}&season=${season}&episode=${episode}`;
       }
     }
   };
