@@ -98,33 +98,38 @@ export const usePayment = () => {
       }
 
       await queryClient.invalidateQueries({
-        queryKey: ["purchase-status", String(id), String(contentType)],
+        queryKey: ["purchase-status"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["auth-me"],
       });
       dispatch({ type: "SUCCESS" });
 
-      const toastId = toast.loading("Navigate to Receipt Page", {
-        position: "top-center",
+      toast.success("🎉 VIP Subscription Activated!", {
+        description: "Unlimited access granted across all Movies & TV Shows!",
       });
-      setTimeout(() => {
+
+      if (data.receiptNumber) {
         navigate(`/receipt/${data.receiptNumber}`);
-        toast.dismiss(toastId);
-      }, 6000);
+      } else {
+        window.location.reload();
+      }
     } catch (err: any) {
       dispatch({
         type: "FAIL",
         payload: err.response?.data?.message || err.message || "Verification failed",
       });
       toast.error("Payment Verification Failed", {
-        description: `If money was deducted, please submit a ticket.\nContent Name: ${title}\nContent ID: ${id}\nOrder ID: ${response.razorpay_order_id}`,
+        description: `If money was deducted, please submit a ticket.\nContent Name: ${title}\nOrder ID: ${response.razorpay_order_id}`,
         action: {
           label: "Copy ID",
-          onClick: () => navigator.clipboard.writeText(String(id)),
+          onClick: () => navigator.clipboard.writeText(String(response.razorpay_order_id)),
         },
         duration: Number.POSITIVE_INFINITY,
         closeButton: true,
       });
       await queryClient.invalidateQueries({
-        queryKey: ["purchase-status", String(id), String(contentType)],
+        queryKey: ["purchase-status"],
       });
     }
   };
