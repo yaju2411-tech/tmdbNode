@@ -48,7 +48,9 @@ export const createOrder = async (req, res, next) => {
         );
 
         return res.status(201).json({
-            success:true,order
+            success: true,
+            order,
+            key: process.env.RAZORPAY_KEY_ID,
         });
     } catch (err) {
         next(err);

@@ -186,7 +186,7 @@ export const usePayment = () => {
       });
 
       const options = {
-        key: "rzp_test_SeXOMHGaiWMMQd",
+        key: (order as any).key || import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_TJB5GvLQsk8Nw8",
         amount: order.amount,
         currency: "INR",
         order_id: order.id,
