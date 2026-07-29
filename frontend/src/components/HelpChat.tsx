@@ -61,9 +61,9 @@ export const HelpChat = ({ onSwitchToTicket }: { onSwitchToTicket: () => void })
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-zinc-950/50">
+    <div className="flex flex-col h-full min-h-[550px] justify-between bg-gray-50 dark:bg-zinc-950/50">
       {/* Chat Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 max-h-[500px]">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 min-h-[360px] max-h-[460px]">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -100,24 +100,22 @@ export const HelpChat = ({ onSwitchToTicket }: { onSwitchToTicket: () => void })
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Helper / Switch to Ticket */}
-      {messages.length > 2 && (
-        <div className="px-4 sm:px-6 py-2 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-100 dark:border-blue-900/30 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400">
-            <AlertCircle size={16} />
-            <span>Still stuck?</span>
-          </div>
-          <button
-            onClick={onSwitchToTicket}
-            className="text-sm font-medium text-[#E50914] hover:underline"
-          >
-            Submit a Ticket
-          </button>
+      {/* Helper / Switch to Ticket (Fixed above input as in Screenshot 2) */}
+      <div className="px-4 sm:px-6 py-2.5 bg-blue-50/80 dark:bg-blue-950/40 border-t border-blue-100 dark:border-blue-900/30 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-400 font-medium">
+          <AlertCircle size={16} />
+          <span>Still stuck?</span>
         </div>
-      )}
+        <button
+          onClick={onSwitchToTicket}
+          className="text-sm font-bold text-[#E50914] hover:underline"
+        >
+          Submit a Ticket
+        </button>
+      </div>
 
-      {/* Input Area */}
-      <div className="p-4 sm:p-6 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800">
+      {/* Input Area (Fixed at bottom) */}
+      <div className="p-4 sm:p-6 bg-white dark:bg-zinc-900 border-t border-gray-200 dark:border-zinc-800 shrink-0">
         <form onSubmit={handleSend} className="relative flex items-center">
           <input
             type="text"
@@ -125,7 +123,7 @@ export const HelpChat = ({ onSwitchToTicket }: { onSwitchToTicket: () => void })
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your question..."
             disabled={isLoading}
-            className="w-full pl-4 pr-12 py-3.5 bg-gray-100 dark:bg-zinc-950 border border-transparent dark:border-zinc-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:bg-white dark:focus:bg-zinc-900 transition-all disabled:opacity-50 dark:text-white"
+            className="w-full pl-4 pr-12 py-3.5 bg-gray-100 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:bg-white dark:focus:bg-zinc-900 transition-all disabled:opacity-50 dark:text-white"
           />
           <button
             type="submit"
