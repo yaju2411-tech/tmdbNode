@@ -154,24 +154,24 @@ export const HelpTicketForm = () => {
         {/* User Info */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Full Name *</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-400">Full Name *</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white transition-all"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm text-gray-900 dark:text-white transition-all"
               placeholder="Your full name"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Email Address *</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-400">Email Address *</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white transition-all"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm text-gray-900 dark:text-white transition-all"
               placeholder="your.email@example.com"
             />
           </div>
@@ -179,15 +179,15 @@ export const HelpTicketForm = () => {
 
         {/* Category Radio Grid */}
         <div className="space-y-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Select Issue Type *</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-400">Select Issue Type *</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CATEGORIES.map((cat) => (
               <label
                 key={cat.id}
                 className={`flex items-center p-3.5 border rounded-xl cursor-pointer transition-all ${
                   formData.category === cat.id
-                    ? "border-red-600 bg-gradient-to-r from-red-950/40 to-zinc-900 shadow-md ring-1 ring-red-600/40"
-                    : "border-zinc-800/80 bg-zinc-950/60 hover:bg-zinc-900 hover:border-zinc-700"
+                    ? "border-red-600 bg-red-50 dark:bg-gradient-to-r dark:from-red-950/40 dark:to-zinc-900 shadow-sm ring-1 ring-red-600/40"
+                    : "border-gray-200 dark:border-zinc-800/80 bg-gray-50/50 dark:bg-zinc-950/60 hover:bg-gray-100 dark:hover:bg-zinc-900"
                 }`}
               >
                 <input
@@ -198,12 +198,12 @@ export const HelpTicketForm = () => {
                   onChange={() => setFormData({ ...formData, category: cat.id })}
                 />
                 <div className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 shrink-0 ${
-                  formData.category === cat.id ? "border-red-500 bg-red-600/20" : "border-zinc-700"
+                  formData.category === cat.id ? "border-red-500 bg-red-600/20" : "border-gray-400 dark:border-zinc-700"
                 }`}>
-                  {formData.category === cat.id && <div className="w-2 h-2 rounded-full bg-red-500" />}
+                  {formData.category === cat.id && <div className="w-2 h-2 rounded-full bg-red-600" />}
                 </div>
                 <span className={`text-xs sm:text-sm ${
-                  formData.category === cat.id ? "text-white font-bold" : "text-zinc-400"
+                  formData.category === cat.id ? "text-red-700 dark:text-white font-bold" : "text-gray-700 dark:text-zinc-400"
                 }`}>
                   {cat.label}
                 </span>
@@ -214,20 +214,20 @@ export const HelpTicketForm = () => {
 
         {/* Subscription Payment Details Section */}
         {isPaymentIssue && (
-          <div className="p-6 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-5 shadow-xl">
-            <div className="flex items-center gap-2 border-b border-zinc-800/80 pb-3">
-              <CreditCard className="w-4 h-4 text-red-500" />
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Subscription & Payment Details</h3>
+          <div className="p-6 bg-gray-50 dark:bg-zinc-950 rounded-2xl border border-gray-200 dark:border-zinc-800 space-y-5 shadow-sm dark:shadow-xl transition-colors">
+            <div className="flex items-center gap-2 border-b border-gray-200 dark:border-zinc-800/80 pb-3">
+              <CreditCard className="w-4 h-4 text-red-600 dark:text-red-500" />
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Subscription & Payment Details</h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Plan Required */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-300">Subscription Plan *</label>
+                <label className="text-xs font-bold text-gray-700 dark:text-zinc-300">Subscription Plan *</label>
                 <select
                   value={formData.plan}
                   onChange={(e) => handlePlanChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-white font-semibold"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-gray-900 dark:text-white font-semibold"
                 >
                   <option value="monthly">Monthly Pass (₹199)</option>
                   <option value="quarterly">Quarterly VIP (₹399)</option>
@@ -237,47 +237,47 @@ export const HelpTicketForm = () => {
 
               {/* Amount Required */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-zinc-300">Amount Paid (₹) *</label>
+                <label className="text-xs font-bold text-gray-700 dark:text-zinc-300">Amount Paid (₹) *</label>
                 <input
                   type="number"
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-white font-semibold"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-1 focus:ring-red-600 outline-none text-sm text-gray-900 dark:text-white font-semibold"
                   placeholder="e.g. 399"
                 />
               </div>
 
               {/* Optional IDs */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Order ID (Optional)</label>
+                <label className="text-xs font-semibold text-gray-600 dark:text-zinc-400">Order ID (Optional)</label>
                 <input
                   type="text"
                   value={formData.orderId}
                   onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-800 rounded-xl outline-none text-xs text-gray-900 dark:text-white"
                   placeholder="order_xxxxxxxx"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-zinc-400">Payment ID (Optional)</label>
+                <label className="text-xs font-semibold text-gray-600 dark:text-zinc-400">Payment ID (Optional)</label>
                 <input
                   type="text"
                   value={formData.paymentId}
                   onChange={(e) => setFormData({ ...formData, paymentId: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-800 rounded-xl outline-none text-xs text-gray-900 dark:text-white"
                   placeholder="pay_xxxxxxxx"
                 />
               </div>
 
               <div className="space-y-1.5 sm:col-span-2">
-                <label className="text-xs font-semibold text-zinc-400">Receipt ID (Optional)</label>
+                <label className="text-xs font-semibold text-gray-600 dark:text-zinc-400">Receipt ID (Optional)</label>
                 <input
                   type="text"
                   value={formData.receiptId}
                   onChange={(e) => setFormData({ ...formData, receiptId: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl outline-none text-xs text-white"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-zinc-900/60 border border-gray-200 dark:border-zinc-800 rounded-xl outline-none text-xs text-gray-900 dark:text-white"
                   placeholder="REC-2026-XXXXX"
                 />
               </div>
@@ -285,12 +285,12 @@ export const HelpTicketForm = () => {
 
             {/* Upload Proof Images Required */}
             <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
+              <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 flex items-center justify-between">
                 <span>Payment Screenshot Proof (Required *)</span>
-                <span className="text-[10px] text-zinc-500 font-normal">Up to 5 images</span>
+                <span className="text-[10px] text-gray-500 dark:text-zinc-500 font-normal">Up to 5 images</span>
               </label>
 
-              <div className="relative border-2 border-dashed border-zinc-800 hover:border-red-600/50 rounded-2xl p-6 text-center transition-all bg-zinc-900/40">
+              <div className="relative border-2 border-dashed border-gray-300 dark:border-zinc-800 hover:border-red-500/50 rounded-2xl p-6 text-center transition-all bg-white dark:bg-zinc-900/40">
                 <input
                   type="file"
                   accept="image/*"
@@ -312,10 +312,10 @@ export const HelpTicketForm = () => {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <UploadCloud className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-xs text-zinc-300 font-semibold">
+                <p className="text-xs text-gray-700 dark:text-zinc-300 font-semibold">
                   Click or drag payment screenshots here to upload
                 </p>
-                <p className="text-[10px] text-zinc-500 mt-1">PNG, JPG, JPEG formats allowed</p>
+                <p className="text-[10px] text-gray-500 dark:text-zinc-500 mt-1">PNG, JPG, JPEG formats allowed</p>
               </div>
 
               {proofImages.length > 0 && (

@@ -90,19 +90,19 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-colors">
         {/* Top Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-800 bg-gradient-to-r from-red-950/40 via-zinc-900 to-zinc-950">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 dark:border-zinc-800 bg-gradient-to-r from-red-50 dark:from-red-950/40 via-gray-50 dark:via-zinc-900 to-white dark:to-zinc-950">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-red-600/20 text-red-500 rounded-2xl border border-red-500/30">
+            <div className="p-2.5 bg-red-500/10 text-red-600 dark:text-red-500 rounded-2xl border border-red-500/20">
               <Crown className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                Unlock Unlimited Access <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                Unlock Unlimited Access <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-gray-500 dark:text-zinc-400">
                 Choose a plan to watch all movies and TV shows instantly
               </p>
             </div>
@@ -110,7 +110,7 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <Button
             onClick={onClose}
             variant="ghost"
-            className="text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-full p-2"
+            className="text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-2"
           >
             <X className="w-6 h-6" />
           </Button>
@@ -118,21 +118,21 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
         {/* ACTIVE VIP BANNER */}
         {isVipActive && (
-          <div className="bg-emerald-950/60 border-b border-emerald-500/30 px-6 py-3.5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+          <div className="bg-emerald-50 dark:bg-emerald-950/60 border-b border-emerald-200 dark:border-emerald-500/30 px-6 py-3.5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>
                 You currently have an active <strong>{subscription.plan?.toUpperCase()} VIP PASS</strong> valid until {formattedExpiry}.
               </span>
             </div>
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase">
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase">
               ACTIVE
             </span>
           </div>
         )}
 
         {/* Plans Grid */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-zinc-950">
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-zinc-950">
           {plans.map((plan) => {
             const isSelected = selectedPlan === plan.id;
             return (
@@ -141,8 +141,8 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 onClick={() => setSelectedPlan(plan.id)}
                 className={`relative cursor-pointer rounded-2xl p-5 border transition-all duration-200 flex flex-col justify-between ${
                   isSelected
-                    ? "bg-gradient-to-b from-red-950/30 to-zinc-900 border-red-600 shadow-xl shadow-red-950/40 ring-2 ring-red-600/50"
-                    : "bg-zinc-900/60 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900"
+                    ? "bg-white dark:bg-gradient-to-b dark:from-red-950/30 dark:to-zinc-900 border-red-600 shadow-xl shadow-red-600/10 dark:shadow-red-950/40 ring-2 ring-red-600/50"
+                    : "bg-white dark:bg-zinc-900/60 border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-100/50 dark:hover:bg-zinc-900"
                 }`}
               >
                 {plan.badge && (
@@ -150,7 +150,7 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     className={`absolute -top-3 right-4 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm ${
                       plan.popular
                         ? "bg-gradient-to-r from-red-600 to-amber-500 text-white"
-                        : "bg-zinc-800 text-zinc-300 border border-zinc-700"
+                        : "bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700"
                     }`}
                   >
                     {plan.badge}
@@ -158,18 +158,18 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
                 )}
 
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
-                  <p className="text-xs text-zinc-400 mb-4">{plan.duration} access</p>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{plan.name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mb-4">{plan.duration} access</p>
 
                   <div className="flex items-baseline gap-1 mb-6">
-                    <span className="text-3xl font-black text-white">₹{plan.price}</span>
-                    <span className="text-xs text-zinc-500 font-medium">/ {plan.duration}</span>
+                    <span className="text-3xl font-black text-gray-900 dark:text-white">₹{plan.price}</span>
+                    <span className="text-xs text-gray-500 dark:text-zinc-500 font-medium">/ {plan.duration}</span>
                   </div>
 
-                  <ul className="space-y-2.5 mb-6 text-xs text-zinc-300">
+                  <ul className="space-y-2.5 mb-6 text-xs text-gray-700 dark:text-zinc-300">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-center gap-2">
-                        <Check className="w-4 h-4 text-red-500 shrink-0" />
+                        <Check className="w-4 h-4 text-red-600 dark:text-red-500 shrink-0" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -180,7 +180,7 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
                   className={`w-full py-2.5 rounded-xl text-xs font-bold text-center transition-all ${
                     isSelected
                       ? "bg-red-600 text-white"
-                      : "bg-zinc-800 text-zinc-400 group-hover:text-white"
+                      : "bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-white"
                   }`}
                 >
                   {isSelected ? "Selected" : "Select Plan"}
@@ -191,8 +191,8 @@ export const SubscriptionModal: React.FC<Props> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer Action */}
-        <div className="p-6 bg-zinc-900/80 border-t border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
+        <div className="p-6 bg-white dark:bg-zinc-900/80 border-t border-gray-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>Secure 256-bit Encrypted Payment via Razorpay. Cancel anytime.</span>
           </div>

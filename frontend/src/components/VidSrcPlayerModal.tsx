@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { X, Server, Tv, ArrowLeft, Maximize2 } from "lucide-react";
 import { Button } from "./ui/button";
 
@@ -89,8 +90,8 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[99999] flex flex-col bg-black w-screen h-screen overflow-hidden animate-in fade-in duration-200">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[999999] flex flex-col bg-black w-screen h-screen overflow-hidden animate-in fade-in duration-200">
       {/* Top Header Controls Bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-zinc-950/90 border-b border-zinc-800 backdrop-blur-md z-10 shrink-0">
         <div className="flex items-center gap-3">
@@ -222,7 +223,8 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

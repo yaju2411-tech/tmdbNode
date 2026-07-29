@@ -17,6 +17,18 @@ body,
 #root {
   width: 100%;
   overflow-x: hidden;
+}
+
+html.dark,
+html.dark body,
+html.dark #root {
   background-color: #09090b;
   color: #ffffff;
+}
+
+html:not(.dark),
+html:not(.dark) body,
+html:not(.dark) #root {
+  background-color: #f8fafc;
+  color: #0f172a;
 }

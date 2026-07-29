@@ -16,6 +16,9 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
+import { useTheme } from "../hooks/useTheme";
+import { Sun, Moon } from "lucide-react";
+
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -25,6 +28,7 @@ export default function LoginPage() {
   const [verified, setVerified] = useState<string | boolean>(false);
   const [showOtpDialog, setShowOtpDialog] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const { isDark, toggleTheme } = useTheme();
   const {
     loginWithOAuth,
     signIn,
@@ -111,11 +115,20 @@ export default function LoginPage() {
 
   return (
     <div
-      className={`overflow-x-hidden w-full min-h-screen flex text-white bg-zinc-950 font-sans relative flex-col-reverse lg:flex-row ${isLogin
+      className={`overflow-x-hidden w-full min-h-screen flex text-gray-900 dark:text-white bg-white dark:bg-zinc-950 font-sans relative flex-col-reverse lg:flex-row transition-colors ${isLogin
         ? "lg:flex-row"
         : "lg:flex-row-reverse"
         }`}
     >
+      {/* Theme Toggle Floating Button */}
+      <button
+        onClick={toggleTheme}
+        className="absolute top-6 right-6 z-50 p-3 rounded-full bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-500 shadow-md transition-all"
+        title="Toggle Light / Dark Mode"
+      >
+        {isDark ? <Sun size={20} /> : <Moon size={20} />}
+      </button>
+
       {/* TOAST */}
       <AnimatePresence>
         {toastMsg && (
@@ -135,7 +148,7 @@ export default function LoginPage() {
               y: -20,
               scale: 0.95,
             }}
-            className="absolute top-6 right-6 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl font-semibold"
+            className="absolute top-6 left-6 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl font-semibold"
           >
             {toastMsg}
           </motion.div>
@@ -206,7 +219,7 @@ export default function LoginPage() {
               >
                 {/* EMAIL */}
                 <div>
-                  <label className="text-sm text-zinc-300">
+                  <label className="text-sm text-gray-700 dark:text-zinc-300 font-semibold">
                     Email
                   </label>
 
@@ -218,21 +231,21 @@ export default function LoginPage() {
                       setEmail(e.target.value)
                     }
                     placeholder="m@example.com"
-                    className="w-full mt-2 px-4 py-3 rounded-md bg-zinc-900 border border-zinc-800 outline-none focus:border-red-600"
+                    className="w-full mt-2 px-4 py-3 rounded-md bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white outline-none focus:border-red-600 transition-all"
                   />
                 </div>
 
                 {/* PASSWORD */}
                 <div>
                   <div className="flex items-center justify-between">
-                    <label className="text-sm text-zinc-300">
+                    <label className="text-sm text-gray-700 dark:text-zinc-300 font-semibold">
                       Password
                     </label>
 
                     {isLogin && (
                       <Link
                         to="/reset-password"
-                        className="text-xs text-red-500 hover:underline"
+                        className="text-xs text-red-600 dark:text-red-500 hover:underline font-semibold"
                       >
                         Forgot password?
                       </Link>
@@ -254,7 +267,7 @@ export default function LoginPage() {
                         )
                       }
                       placeholder="••••••••"
-                      className="w-full px-4 py-3 pr-10 rounded-md bg-zinc-900 border border-zinc-800 outline-none focus:border-red-600"
+                      className="w-full px-4 py-3 pr-10 rounded-md bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white outline-none focus:border-red-600 transition-all"
                     />
 
                     <button
@@ -264,7 +277,7 @@ export default function LoginPage() {
                           !showPassword
                         )
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-zinc-400"
                     >
                       {showPassword ? (
                         <EyeOff size={18} />
@@ -282,12 +295,12 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={!isLogin && !verified}
-                  className={`w-full py-3 rounded-md font-semibold transition-all ${isLogin || verified
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-zinc-700 cursor-not-allowed"
+                  className={`w-full py-3 rounded-md font-semibold text-white transition-all ${isLogin || verified
+                    ? "bg-red-600 hover:bg-red-700 shadow-md shadow-red-950/20"
+                    : "bg-gray-300 dark:bg-zinc-800 text-gray-500 cursor-not-allowed"
                     }`}
                 >
-                  {isLogin && verified
+                  {isLogin
                     ? "Sign In"
                     : "Sign Up"}
                 </button>
@@ -298,11 +311,11 @@ export default function LoginPage() {
           {/* DIVIDER */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-zinc-800" />
+              <span className="w-full border-t border-gray-200 dark:border-zinc-800" />
             </div>
 
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-zinc-950 px-3 text-zinc-500">
+              <span className="bg-white dark:bg-zinc-950 px-3 text-gray-500 dark:text-zinc-500">
                 Or continue with
               </span>
             </div>
@@ -319,9 +332,9 @@ export default function LoginPage() {
               loginWithOAuth();
             }}
             disabled={!isLogin && !verified}
-            className={`w-full py-3 rounded-md border transition-all ${isLogin || verified
-              ? "bg-zinc-900 hover:bg-zinc-800 border-zinc-700"
-              : "bg-zinc-800 border-zinc-800 cursor-not-allowed"
+            className={`w-full py-3 rounded-md border text-gray-900 dark:text-white transition-all ${isLogin || verified
+              ? "bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 border-gray-300 dark:border-zinc-700"
+              : "bg-gray-100 dark:bg-zinc-800 border-gray-200 dark:border-zinc-800 cursor-not-allowed text-gray-400"
               }`}
           >
             Continue with Google

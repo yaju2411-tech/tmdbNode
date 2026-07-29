@@ -8,7 +8,11 @@ import './index.css'
 import { Toaster } from './components/ui/sonner'
 import { SidebarProvider } from './components/ui/sidebar'
 
-document.documentElement.classList.add("dark");
+if (localStorage.getItem("theme") !== "light") {
+  document.documentElement.classList.add("dark");
+} else {
+  document.documentElement.classList.remove("dark");
+}
 
 const queryClient = new QueryClient()
 
