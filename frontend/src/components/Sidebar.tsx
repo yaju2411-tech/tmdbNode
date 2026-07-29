@@ -1,4 +1,4 @@
-import {Home,Tv,Film,Heart,Receipt,Settings,ChevronLeft,ChevronRight,Star,Globe, X,HelpCircle, User, SunIcon, MoonIcon} from "lucide-react";
+import {Home,Tv,Film,Heart,Receipt,Settings,ChevronLeft,ChevronRight,Star,Globe, X,HelpCircle, User, SunIcon, MoonIcon, Crown} from "lucide-react";
 import { Link } from "react-router-dom";
 import {Tooltip,TooltipContent,TooltipProvider,TooltipTrigger} from "./ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
