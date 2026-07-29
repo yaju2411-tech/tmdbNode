@@ -17,7 +17,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   title,
   type,
 }) => {
-  const [server, setServer] = useState<"vidlink" | "vidsrc_cc" | "vidsrc_icu" | "vidsrc_pro" | "embed2">("vidlink");
+  const [server, setServer] = useState<"vidsrc_cc" | "vidlink" | "vidsrc_icu" | "vidsrc_pro" | "embed2">("vidsrc_cc");
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
 
@@ -26,10 +26,10 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   const getEmbedUrl = () => {
     if (type === "movie") {
       switch (server) {
-        case "vidlink":
-          return `https://vidlink.pro/movie/${id}?primaryColor=e50914&secondaryColor=1a1a1a&iconColor=ffffff&autoplay=false`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/movie/${id}`;
+        case "vidlink":
+          return `https://vidlink.pro/movie/${id}`;
         case "vidsrc_icu":
           return `https://vidsrc.icu/embed/movie/${id}`;
         case "vidsrc_pro":
@@ -37,14 +37,14 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embed/${id}`;
         default:
-          return `https://vidlink.pro/movie/${id}?primaryColor=e50914&secondaryColor=1a1a1a&iconColor=ffffff&autoplay=false`;
+          return `https://vidsrc.cc/v2/embed/movie/${id}`;
       }
     } else {
       switch (server) {
-        case "vidlink":
-          return `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=e50914&secondaryColor=1a1a1a&iconColor=ffffff&autoplay=false`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
+        case "vidlink":
+          return `https://vidlink.pro/tv/${id}/${season}/${episode}`;
         case "vidsrc_icu":
           return `https://vidsrc.icu/embed/tv/${id}/${season}/${episode}`;
         case "vidsrc_pro":
@@ -52,7 +52,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         default:
-          return `https://vidlink.pro/tv/${id}/${season}/${episode}?primaryColor=e50914&secondaryColor=1a1a1a&iconColor=ffffff&autoplay=false`;
+          return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
       }
     }
   };
@@ -79,7 +79,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
           </Button>
         </div>
 
-        {/* Video Player Frame with Strict Popup Security Sandbox */}
+        {/* Video Player Frame */}
         <div className="relative w-full aspect-video bg-black flex items-center justify-center">
           <iframe
             key={`${server}-${season}-${episode}`}
@@ -88,7 +88,6 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
             className="w-full h-full border-0"
             allowFullScreen
             allow="autoplay; encrypted-media; picture-in-picture"
-            sandbox="allow-scripts allow-same-origin allow-forms"
             referrerPolicy="origin"
           />
         </div>
@@ -101,16 +100,6 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
               <Server className="w-4 h-4 text-red-500" /> Server:
             </span>
             <button
-              onClick={() => setServer("vidlink")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                server === "vidlink"
-                  ? "bg-red-600 text-white shadow-md shadow-red-900/30"
-                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-              }`}
-            >
-              VidLink (Clean HD)
-            </button>
-            <button
               onClick={() => setServer("vidsrc_cc")}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 server === "vidsrc_cc"
@@ -118,7 +107,17 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
                   : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
               }`}
             >
-              VidSrc CC
+              VidSrc CC (Default HD)
+            </button>
+            <button
+              onClick={() => setServer("vidlink")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                server === "vidlink"
+                  ? "bg-red-600 text-white shadow-md shadow-red-900/30"
+                  : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+              }`}
+            >
+              VidLink
             </button>
             <button
               onClick={() => setServer("vidsrc_icu")}
