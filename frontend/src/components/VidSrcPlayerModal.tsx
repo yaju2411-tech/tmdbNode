@@ -17,7 +17,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   title,
   type,
 }) => {
-  const [server, setServer] = useState<"smashystream" | "vidsrc_cc" | "vidsrc_icu" | "vidsrc_to" | "embed2">("smashystream");
+  const [server, setServer] = useState<"vidsrc_cc" | "vidsrc_icu" | "vidsrc_to" | "smashystream" | "embed2">("vidsrc_cc");
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
 
@@ -26,33 +26,33 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   const getEmbedUrl = () => {
     if (type === "movie") {
       switch (server) {
-        case "smashystream":
-          return `https://embed.smashystream.com/player.php?tmdb=${id}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/movie/${id}`;
         case "vidsrc_icu":
           return `https://vidsrc.icu/embed/movie/${id}`;
         case "vidsrc_to":
           return `https://vidsrc.to/embed/movie/${id}`;
+        case "smashystream":
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
         case "embed2":
           return `https://www.2embed.cc/embed/${id}`;
         default:
-          return `https://embed.smashystream.com/player.php?tmdb=${id}`;
+          return `https://vidsrc.cc/v2/embed/movie/${id}`;
       }
     } else {
       switch (server) {
-        case "smashystream":
-          return `https://embed.smashystream.com/player.php?tmdb=${id}&season=${season}&episode=${episode}`;
         case "vidsrc_cc":
           return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
         case "vidsrc_icu":
           return `https://vidsrc.icu/embed/tv/${id}/${season}/${episode}`;
         case "vidsrc_to":
           return `https://vidsrc.to/embed/tv/${id}/${season}/${episode}`;
+        case "smashystream":
+          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
         case "embed2":
           return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         default:
-          return `https://embed.smashystream.com/player.php?tmdb=${id}&season=${season}&episode=${episode}`;
+          return `https://vidsrc.cc/v2/embed/tv/${id}/${season}/${episode}`;
       }
     }
   };

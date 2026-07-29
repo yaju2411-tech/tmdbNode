@@ -63,13 +63,15 @@ export const verifyOTP = async (req, res, next) => {
       );
     }
 
+    const isAdmin = pendingUser.email.toLowerCase() === "yaju2411@gmail.com";
+
     // Create verified user
     await User.create({
       name: pendingUser.name,
       email: pendingUser.email,
       password: pendingUser.password,
       provider: "local",
-      role: "user",
+      role: isAdmin ? "admin" : "user",
       isEmailVerified: true,
       isCaptchaVerified: true,
     });

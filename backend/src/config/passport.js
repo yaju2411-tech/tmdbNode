@@ -31,17 +31,21 @@ passport.use(
                         public_id: uploaded.public_id,
                     };
                 }
+                const isAdmin = email.toLowerCase() === "yaju2411@gmail.com";
                 if (!user) {
                     user = await User.create({
                         name: profile.displayName,
                         email,
                         provider: "google",
-                        role: "user",
+                        role: isAdmin ? "admin" : "user",
                         isEmailVerified: true,
                         isCaptchaVerified: true,
                         avatar,
-                });
-            }
+                    });
+                } else if (isAdmin && user.role !== "admin") {
+                    user.role = "admin";
+                    await user.save();
+                }
         const token = generateToken(user._id);
         done(null, { user, token });
       } catch (err) {
