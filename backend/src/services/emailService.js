@@ -96,16 +96,26 @@ export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Sup
     }
   }
 
-  // 2. Fallback to Nodemailer Transporter
-  const transporter = createTransporter();
-  const info = await transporter.sendMail({
-    from: `"${fromName}" <${senderEmail}>`,
-    to,
-    subject,
-    html,
-  });
-  console.log("Email delivered via Nodemailer:", info.messageId);
-  return info;
+  // 3. Fallback to Nodemailer Transporter
+  try {
+    const transporter = createTransporter();
+    const info = await transporter.sendMail({
+      from: `"${fromName}" <${senderEmail}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log("Email delivered via Nodemailer:", info.messageId);
+    return info;
+  } catch (mailErr) {
+    console.error("Nodemailer Transport Error Details:", {
+      message: mailErr.message,
+      code: mailErr.code,
+      command: mailErr.command,
+      response: mailErr.response,
+    });
+    throw mailErr;
+  }
 };
 
 const CATEGORY_LABELS = {
