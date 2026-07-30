@@ -17,7 +17,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
   title,
   type,
 }) => {
-  const [server, setServer] = useState<"smashystream" | "vidsrc_cc" | "vidlink" | "autoembed" | "embed2">("smashystream");
+  const [server, setServer] = useState<"smashystream" | "vidsrc_cc" | "vidlink" | "autoembed" | "embed2">("autoembed");
   const [season, setSeason] = useState<number>(1);
   const [episode, setEpisode] = useState<number>(1);
 
@@ -69,7 +69,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embed/${id}`;
         default:
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}`;
+          return `https://player.autoembed.cc/embed/movie/${id}`;
       }
     } else {
       switch (server) {
@@ -84,7 +84,7 @@ export const VidSrcPlayerModal: React.FC<Props> = ({
         case "embed2":
           return `https://www.2embed.cc/embedtv/${id}&s=${season}&e=${episode}`;
         default:
-          return `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${season}&episode=${episode}`;
+          return `https://player.autoembed.cc/embed/tv/${id}/${season}/${episode}`;
       }
     }
   };
