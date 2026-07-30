@@ -4,7 +4,7 @@ import {
     deleteUserByAdmin, forceVerifyUser, getTickets, updateTicketStatus, deleteTicket,
     grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus,
     updateUserSubscription, getSubscriptionAnalytics, verifyTicketUser,
-    resendUserOtpFromAdmin, sendPasswordResetFromAdmin, testEmailConfiguration
+    resendUserOtpFromAdmin, sendPasswordResetFromAdmin
 } from "../controllers/admin/adminController.js";
 import protect from "../middleware/authMiddlware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
@@ -15,9 +15,6 @@ const router = express.Router();
 // Secure all admin routes
 router.use(protect);
 router.use(adminOnly);
-
-// Diagnostic email test
-router.post("/test-email", testEmailConfiguration);
 
 // Profile & stats management
 router.get("/admins", getAdmins);

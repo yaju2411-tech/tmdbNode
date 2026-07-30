@@ -282,24 +282,6 @@ export const AdminTickets = () => {
     }
   });
 
-  const testEmailMutation = useMutation({
-    mutationFn: async () => {
-      const res = await api.post("/admin/test-email", {});
-      return res.data;
-    },
-    onSuccess: (data: any) => {
-      toast.success("🎉 Email System Connected & Verified!", {
-        description: data.message
-      });
-    },
-    onError: (error: any) => {
-      const msg = error.response?.data?.message || error.message || "Failed to connect to SMTP server";
-      toast.error(`Email Diagnostic Failed: ${msg}`, {
-        description: "Verify EMAIL_USER and EMAIL_PASS (or GMAIL_REFRESH_TOKEN) in Render."
-      });
-    }
-  });
-
   const handleDeleteTicket = (ticket: Ticket) => {
     if (ticket.status !== "resolved") {
       toast.error("Cannot delete an unresolved ticket!", {
@@ -411,16 +393,6 @@ export const AdminTickets = () => {
             </span>
           </button>
         </div>
-
-        {/* Email Connection Test Button */}
-        <Button
-          onClick={() => testEmailMutation.mutate()}
-          disabled={testEmailMutation.isPending}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded-xl shadow-md transition-all flex items-center gap-2 shrink-0"
-        >
-          <Mail className="w-4 h-4" />
-          {testEmailMutation.isPending ? "Testing SMTP Connection..." : "Test Email Connection"}
-        </Button>
 
         {/* Quick Stats Metric Cards */}
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
