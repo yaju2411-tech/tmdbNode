@@ -53,7 +53,7 @@ export const AdminPanel = () => {
       const res = await api.get("/admin/tickets");
       return res.data?.tickets || [];
     },
-    refetchInterval: 15000,
+    staleTime: 60000,
   });
   const openTicketsCount = tickets.filter((t: any) => t.status === "open").length;
 

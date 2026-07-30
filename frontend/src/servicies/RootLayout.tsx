@@ -41,18 +41,5 @@ export function RootLayout() {
     }
   }, [location.pathname, userData, isLoading]);
 
-  useEffect(() => {
-    const callExpire = async () => {
-      try {
-        await api.get("/cron/check-pending");
-      } catch (err) {
-        console.error("Cron failed", err);
-      }
-    };
-    callExpire();
-    const interval = setInterval(callExpire, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   return <Outlet />;
 }

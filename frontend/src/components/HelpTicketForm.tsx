@@ -82,6 +82,9 @@ export const HelpTicketForm = () => {
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
+        if (!isPaymentIssue && (key === "plan" || key === "amount" || key === "orderId" || key === "paymentId" || key === "receiptId")) {
+          return;
+        }
         data.append(key, value);
       });
       if (proofImages.length > 0) {

@@ -155,11 +155,14 @@ export const submitTicket = async (req, res, next) => {
       description: description.trim(),
     };
 
-    if (plan) ticketData.plan = plan;
-    if (amount) ticketData.amount = Number(amount);
-    if (orderId && orderId.trim()) ticketData.orderId = orderId.trim();
-    if (paymentId && paymentId.trim()) ticketData.paymentId = paymentId.trim();
-    if (receiptId && receiptId.trim()) ticketData.receiptId = receiptId.trim();
+    if (isPaymentIssue) {
+      if (plan) ticketData.plan = plan;
+      if (amount) ticketData.amount = Number(amount);
+      if (orderId && orderId.trim()) ticketData.orderId = orderId.trim();
+      if (paymentId && paymentId.trim()) ticketData.paymentId = paymentId.trim();
+      if (receiptId && receiptId.trim()) ticketData.receiptId = receiptId.trim();
+    }
+
     if (proofImagesUrls.length > 0) ticketData.proofImages = proofImagesUrls;
 
     const ticket = await HelpTicket.create(ticketData);
