@@ -5,8 +5,8 @@ export const createTransporter = async () => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
   const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER;
   const emailPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS;
-  const clientId = process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
+  const clientId = process.env.GMAIL_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
   
   if (refreshToken) {
     let accessToken = "";
@@ -51,8 +51,8 @@ export const createTransporter = async () => {
 // Helper to get fresh access token using refresh token from Google OAuth2
 const getGoogleAccessToken = async () => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
-  const clientId = process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
-  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
+  const clientId = process.env.GMAIL_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
 
   if (!refreshToken || !clientId || !clientSecret) {
     throw new Error("Missing Google OAuth credentials");
