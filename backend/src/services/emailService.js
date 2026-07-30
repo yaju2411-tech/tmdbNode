@@ -2,13 +2,16 @@ import nodemailer from "nodemailer";
 
 export const createTransporter = () => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
+  const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER;
+  const emailPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS;
   
   if (refreshToken) {
     return nodemailer.createTransport({
       service: "gmail",
+      family: 4, // Force IPv4 to fix ENETUNREACH IPv6 connection failure on Render
       auth: {
         type: "OAuth2",
-        user: process.env.GMAIL_USER || process.env.EMAIL_USER,
+        user: emailUser,
         clientId: process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID,
         clientSecret: process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET,
         refreshToken: refreshToken,
@@ -23,12 +26,13 @@ export const createTransporter = () => {
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port,
     secure,
+    family: 4, // Force IPv4 to fix ENETUNREACH IPv6 connection failure on Render
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
     auth: {
-      user: process.env.EMAIL_USER || process.env.GMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: emailUser,
+      pass: emailPass,
     },
   });
 };

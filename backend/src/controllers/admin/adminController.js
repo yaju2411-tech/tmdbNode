@@ -1002,3 +1002,66 @@ export const sendPasswordResetFromAdmin = async (req, res, next) => {
         next(err);
     }
 };
+
+// Test Email Configuration Diagnostic Endpoint
+export const testEmailConfiguration = async (req, res, next) => {
+    try {
+        const { createTransporter } = await import("../../services/emailService.js");
+        const transporter = createTransporter();
+
+        // Verify transport connection
+        await transporter.verify();
+
+        const targetEmail = req.body.email || req.user?.email || process.env.EMAIL_USER || process.env.GMAIL_USER;
+        if (!targetEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "No email address provided for test email."
+            });
+        }
+
+        const info = await transporter.sendMail({
+            from: `"TMDB Email Diagnostic" <${process.env.EMAIL_USER || process.env.GMAIL_USER}>`,
+            to: targetEmail,
+            subject: "🎉 TMDB Email Diagnostic Test Successful!",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; background: #0f0f0f; color: #fff; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #e50914; margin-top: 0;">TMDB Email System Diagnostic</h2>
+                    <p style="font-size: 15px; color: #e0e0e0;">Great news! Your Nodemailer email configuration is 100% verified and working!</p>
+                    <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #2a2a2a;">
+                        <p style="margin: 5px 0; font-size: 13px; color: #888;">Recipient: <strong style="color: #fff;">${targetEmail}</strong></p>
+                        <p style="margin: 5px 0; font-size: 13px; color: #888;">Status: <strong style="color: #10b981;">CONNECTED & SENT (IPv4)</strong></p>
+                        <p style="margin: 5px 0; font-size: 13px; color: #888;">Message ID: <strong style="color: #3b82f6;">${info.messageId}</strong></p>
+                    </div>
+                    <p style="font-size: 12px; color: #666; margin-bottom: 0;">Sent at ${new Date().toISOString()}</p>
+                </div>
+            `
+        });
+
+        return res.json({
+            success: true,
+            message: `Test email sent successfully to ${targetEmail}! Check inbox or spam folder.`,
+            messageId: info.messageId,
+            envVarsDetected: {
+                EMAIL_USER: !!(process.env.EMAIL_USER || process.env.GMAIL_USER),
+                EMAIL_PASS: !!(process.env.EMAIL_PASS || process.env.GMAIL_PASS),
+                GMAIL_REFRESH_TOKEN: !!(process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN),
+                GMAIL_CLIENT_ID: !!(process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID),
+            }
+        });
+    } catch (err) {
+        console.error("Email Diagnostic Failure:", err);
+        return res.status(500).json({
+            success: false,
+            message: `Email Connection Failed: ${err.message}`,
+            code: err.code,
+            command: err.command,
+            envVarsDetected: {
+                EMAIL_USER: !!(process.env.EMAIL_USER || process.env.GMAIL_USER),
+                EMAIL_PASS: !!(process.env.EMAIL_PASS || process.env.GMAIL_PASS),
+                GMAIL_REFRESH_TOKEN: !!(process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN),
+                GMAIL_CLIENT_ID: !!(process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID),
+            }
+        });
+    }
+};
