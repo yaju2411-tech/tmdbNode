@@ -614,6 +614,16 @@ export const AdminTickets = () => {
                                 <Key className="mr-2 h-4 w-4 text-amber-400" /> Grant Manual Access
                               </DropdownMenuItem>
 
+                              <DropdownMenuItem onClick={() => {
+                                if (confirm("Are you sure you want to reset this user's payment? This will clear their pending/failed purchase state so they can repurchase.")) {
+                                  resetPaymentMutation.mutate(ticket._id);
+                                }
+                              }}>
+                                <RotateCcw className="mr-2 h-4 w-4 text-orange-400" /> Reset Payment State
+                              </DropdownMenuItem>
+                            </>
+                          )}
+
                           {ticketType === "account" && (
                             <>
                               <DropdownMenuItem onClick={() => verifyUserMutation.mutate(ticket._id)}>

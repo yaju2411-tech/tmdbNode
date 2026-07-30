@@ -248,8 +248,7 @@ export const HelpTicketForm = () => {
                 />
               </div>
 
-            {/* Optional IDs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Optional IDs */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-600 dark:text-zinc-400">Order ID (Optional)</label>
                 <input
