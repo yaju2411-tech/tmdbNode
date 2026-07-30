@@ -39,16 +39,44 @@ export const createTransporter = () => {
 };
 
 export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Support" }) => {
+  const brevoApiKey = process.env.BREVO_API_KEY;
   const resendApiKey = process.env.RESEND_API_KEY;
-  const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "onboarding@resend.dev";
+  const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "yaju2411@gmail.com";
 
-  // 1. Try Resend HTTP API if key is set (bypasses Render SMTP port blocking)
+  // 1. Try Brevo HTTPS API if key is set (300 free emails/day to ANY recipient, no domain required!)
+  if (brevoApiKey) {
+    try {
+      const response = await axios.post(
+        "https://api.brevo.com/v3/smtp/email",
+        {
+          sender: { name: fromName, email: senderEmail },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html,
+        },
+        {
+          headers: {
+            "api-key": brevoApiKey,
+            "Content-Type": "application/json",
+            "accept": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+      console.log("Email delivered via Brevo HTTPS API:", response.data);
+      return response.data;
+    } catch (apiErr) {
+      console.error("Brevo API failed:", apiErr.response?.data || apiErr.message);
+    }
+  }
+
+  // 2. Try Resend HTTP API if key is set
   if (resendApiKey) {
     try {
       const response = await axios.post(
         "https://api.resend.com/emails",
         {
-          from: `${fromName} <${senderEmail}>`,
+          from: `${fromName} <onboarding@resend.dev>`,
           to: [to],
           subject: subject,
           html: html,
