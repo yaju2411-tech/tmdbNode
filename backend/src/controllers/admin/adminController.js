@@ -893,3 +893,112 @@ export const getSubscriptionAnalytics = async (req, res, next) => {
         next(err);
     }
 };
+
+// Force Verify Ticket User Email & Account
+export const verifyTicketUser = async (req, res, next) => {
+    try {
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        const user = await User.findOne({ email: ticket.email.toLowerCase() });
+        if (user) {
+            user.isEmailVerified = true;
+            user.isCaptchaVerified = true;
+            await user.save();
+        }
+
+        ticket.status = "resolved";
+        ticket.adminNote = "User email & account verified by admin.";
+        await ticket.save();
+
+        return res.json({
+            success: true,
+            message: `User account (${ticket.email}) verified and ticket marked resolved!`,
+            ticket
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Resend Fresh OTP from Admin Panel
+export const resendUserOtpFromAdmin = async (req, res, next) => {
+    try {
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        const generateOTP = (await import("../../utils/generateOtp.js")).default;
+        const { sendOTP } = await import("../../services/emailService.js");
+        const PasswordReset = (await import("../../models/PasswordReset.js")).default;
+        const bcrypt = (await import("bcryptjs")).default;
+
+        const otp = generateOTP();
+        const hashedOTP = await bcrypt.hash(otp, 10);
+
+        await PasswordReset.findOneAndUpdate(
+            { email: ticket.email.toLowerCase() },
+            {
+                email: ticket.email.toLowerCase(),
+                otp: hashedOTP,
+                otpExpires: new Date(Date.now() + 5 * 60 * 1000),
+                lastOTPSent: new Date()
+            },
+            { upsert: true, new: true }
+        );
+
+        await sendOTP(ticket.email, otp);
+
+        ticket.status = "in_progress";
+        ticket.adminNote = `Fresh 6-digit OTP sent to ${ticket.email} by admin.`;
+        await ticket.save();
+
+        return res.json({
+            success: true,
+            message: `Fresh OTP (${otp}) generated and emailed to ${ticket.email}!`,
+            ticket
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Trigger Password Reset Email from Admin Panel
+export const sendPasswordResetFromAdmin = async (req, res, next) => {
+    try {
+        const ticket = await HelpTicket.findById(req.params.id);
+        if (!ticket) return next(new AppError("Ticket not found", 404));
+
+        const generateOTP = (await import("../../utils/generateOtp.js")).default;
+        const { sendOTP } = await import("../../services/emailService.js");
+        const PasswordReset = (await import("../../models/PasswordReset.js")).default;
+        const bcrypt = (await import("bcryptjs")).default;
+
+        const otp = generateOTP();
+        const hashedOTP = await bcrypt.hash(otp, 10);
+
+        await PasswordReset.findOneAndUpdate(
+            { email: ticket.email.toLowerCase() },
+            {
+                email: ticket.email.toLowerCase(),
+                otp: hashedOTP,
+                otpExpires: new Date(Date.now() + 15 * 60 * 1000),
+                lastOTPSent: new Date()
+            },
+            { upsert: true, new: true }
+        );
+
+        await sendOTP(ticket.email, otp);
+
+        ticket.status = "in_progress";
+        ticket.adminNote = `Password reset instructions and verification OTP sent to ${ticket.email}.`;
+        await ticket.save();
+
+        return res.json({
+            success: true,
+            message: `Password reset OTP emailed to ${ticket.email}!`,
+            ticket
+        });
+    } catch (err) {
+        next(err);
+    }
+};

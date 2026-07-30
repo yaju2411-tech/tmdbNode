@@ -242,6 +242,46 @@ export const AdminTickets = () => {
     }
   });
 
+  const verifyUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/admin/tickets/${id}/verify-user`);
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
+      toast.success("User email & account verified successfully!");
+      setIsDetailsOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to verify user account");
+    }
+  });
+
+  const resendOtpMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/admin/tickets/${id}/resend-otp`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
+      toast.success("Fresh 6-Digit OTP generated and emailed to user!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to resend OTP");
+    }
+  });
+
+  const sendPasswordResetMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/admin/tickets/${id}/send-password-reset`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
+      toast.success("Password reset instructions & OTP emailed to user!");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to send password reset email");
+    }
+  });
+
   const handleDeleteTicket = (ticket: Ticket) => {
     if (ticket.status !== "resolved") {
       toast.error("Cannot delete an unresolved ticket!", {
@@ -574,12 +614,18 @@ export const AdminTickets = () => {
                                 <Key className="mr-2 h-4 w-4 text-amber-400" /> Grant Manual Access
                               </DropdownMenuItem>
 
-                              <DropdownMenuItem onClick={() => {
-                                if (confirm("Are you sure you want to reset this user's payment? This will clear their pending/failed purchase state so they can repurchase.")) {
-                                  resetPaymentMutation.mutate(ticket._id);
-                                }
-                              }}>
-                                <RotateCcw className="mr-2 h-4 w-4 text-orange-400" /> Reset Payment State
+                          {ticketType === "account" && (
+                            <>
+                              <DropdownMenuItem onClick={() => verifyUserMutation.mutate(ticket._id)}>
+                                <ShieldCheck className="mr-2 h-4 w-4 text-emerald-500" /> Verify & Unlock User Email
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem onClick={() => resendOtpMutation.mutate(ticket._id)}>
+                                <Key className="mr-2 h-4 w-4 text-amber-500" /> Resend 6-Digit OTP Email
+                              </DropdownMenuItem>
+
+                              <DropdownMenuItem onClick={() => sendPasswordResetMutation.mutate(ticket._id)}>
+                                <RotateCcw className="mr-2 h-4 w-4 text-[#E50914]" /> Send Password Reset Email
                               </DropdownMenuItem>
                             </>
                           )}
@@ -902,21 +948,21 @@ export const AdminTickets = () => {
                 </div>
               </div>
 
-              {/* Render proofImages or legacy proofImage */}
-              {ticketType === "payment" && (selectedTicket.proofImages?.length || selectedTicket.proofImage) ? (
+              {/* Render proofImages or bug screenshots for ALL ticket types */}
+              {(selectedTicket.proofImages?.length || selectedTicket.proofImage) ? (
                 <div>
-                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Payment Proof Images</p>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider mb-2">Attached Screenshots / Proof Images</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {selectedTicket.proofImages?.length ? (
                       selectedTicket.proofImages.map((imgUrl, index) => (
                         <a key={index} href={imgUrl} target="_blank" rel="noreferrer">
-                          <img src={imgUrl} alt={`Payment Proof ${index + 1}`} className="h-32 w-full rounded-lg border border-zinc-800 object-cover bg-black/40 hover:opacity-90 transition-opacity" />
+                          <img src={imgUrl} alt={`Screenshot Proof ${index + 1}`} className="h-32 w-full rounded-lg border border-gray-200 dark:border-zinc-800 object-cover bg-black/40 hover:opacity-90 transition-opacity" />
                         </a>
                       ))
                     ) : (
                       selectedTicket.proofImage && (
                         <a href={selectedTicket.proofImage} target="_blank" rel="noreferrer">
-                          <img src={selectedTicket.proofImage} alt="Payment Proof" className="h-32 w-full rounded-lg border border-zinc-800 object-cover bg-black/40 hover:opacity-90 transition-opacity" />
+                          <img src={selectedTicket.proofImage} alt="Screenshot Proof" className="h-32 w-full rounded-lg border border-gray-200 dark:border-zinc-800 object-cover bg-black/40 hover:opacity-90 transition-opacity" />
                         </a>
                       )
                     )}

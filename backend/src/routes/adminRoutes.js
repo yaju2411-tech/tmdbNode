@@ -3,7 +3,8 @@ import {
     getAdmins, getUsers, getMoviePurchases, getStats, updateUserByAdmin, updateAdmin,
     deleteUserByAdmin, forceVerifyUser, getTickets, updateTicketStatus, deleteTicket,
     grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus,
-    updateUserSubscription, getSubscriptionAnalytics
+    updateUserSubscription, getSubscriptionAnalytics, verifyTicketUser,
+    resendUserOtpFromAdmin, sendPasswordResetFromAdmin
 } from "../controllers/admin/adminController.js";
 import protect from "../middleware/authMiddlware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
@@ -32,6 +33,11 @@ router.delete("/user/:id", deleteUserByAdmin);
 router.post("/tickets/:id/grant-access", grantManualAccess);
 router.post("/tickets/:id/reset-payment", resetPayment);
 router.post("/tickets/:id/check-razorpay", checkRazorpayStatus);
+
+// Account ticket resolution routes
+router.post("/tickets/:id/verify-user", verifyTicketUser);
+router.post("/tickets/:id/resend-otp", resendUserOtpFromAdmin);
+router.post("/tickets/:id/send-password-reset", sendPasswordResetFromAdmin);
 
 // AI Assistant & Email
 router.post("/tickets/:id/draft-email", draftEmail);

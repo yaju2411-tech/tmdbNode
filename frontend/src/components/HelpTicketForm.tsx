@@ -248,7 +248,8 @@ export const HelpTicketForm = () => {
                 />
               </div>
 
-              {/* Optional IDs */}
+            {/* Optional IDs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-600 dark:text-zinc-400">Order ID (Optional)</label>
                 <input
@@ -282,83 +283,85 @@ export const HelpTicketForm = () => {
                 />
               </div>
             </div>
-
-            {/* Upload Proof Images Required */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 flex items-center justify-between">
-                <span>Payment Screenshot Proof (Required *)</span>
-                <span className="text-[10px] text-gray-500 dark:text-zinc-500 font-normal">Up to 5 images</span>
-              </label>
-
-              <div className="relative border-2 border-dashed border-gray-300 dark:border-zinc-800 hover:border-red-500/50 rounded-2xl p-6 text-center transition-all bg-white dark:bg-zinc-900/40">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      const newFiles = Array.from(e.target.files);
-                      setProofImages((prev) => {
-                        const combined = [...prev, ...newFiles];
-                        if (combined.length > 5) {
-                          toast.error("You can only upload up to 5 images");
-                          return prev;
-                        }
-                        return combined;
-                      });
-                      e.target.value = "";
-                    }
-                  }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <UploadCloud className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-xs text-gray-700 dark:text-zinc-300 font-semibold">
-                  Click or drag payment screenshots here to upload
-                </p>
-                <p className="text-[10px] text-gray-500 dark:text-zinc-500 mt-1">PNG, JPG, JPEG formats allowed</p>
-              </div>
-
-              {proofImages.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-xs text-emerald-400 font-semibold">{proofImages.length} image proof(s) attached</p>
-                  <div className="flex flex-wrap gap-3">
-                    {proofImages.map((_, index) => (
-                      <div key={index} className="relative group rounded-xl overflow-hidden border border-zinc-800 w-20 h-20 shadow-md">
-                        <img
-                          src={previewUrls[index]}
-                          alt={`Preview ${index}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProofImages((prev) => prev.filter((_, i) => i !== index));
-                          }}
-                          className="absolute top-1 right-1 bg-black/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
+        {/* Upload Proof/Bug Screenshots Section (Available for ALL Categories) */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 flex items-center justify-between">
+            <span>
+              {isPaymentIssue ? "Payment Screenshot Proof (Required *)" : "Attach Screenshots / Bug Proof (Optional)"}
+            </span>
+            <span className="text-[10px] text-gray-500 dark:text-zinc-500 font-normal">Up to 5 images</span>
+          </label>
+
+          <div className="relative border-2 border-dashed border-gray-300 dark:border-zinc-800 hover:border-red-500/50 rounded-2xl p-6 text-center transition-all bg-gray-50 dark:bg-zinc-900/40">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                if (e.target.files) {
+                  const newFiles = Array.from(e.target.files);
+                  setProofImages((prev) => {
+                    const combined = [...prev, ...newFiles];
+                    if (combined.length > 5) {
+                      toast.error("You can only upload up to 5 images");
+                      return prev;
+                    }
+                    return combined;
+                  });
+                  e.target.value = "";
+                }
+              }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <UploadCloud className="w-8 h-8 text-red-500 mx-auto mb-2" />
+            <p className="text-xs text-gray-700 dark:text-zinc-300 font-semibold">
+              Click or drag screenshots here to upload
+            </p>
+            <p className="text-[10px] text-gray-500 dark:text-zinc-500 mt-1">PNG, JPG, JPEG formats allowed</p>
+          </div>
+
+          {proofImages.length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">{proofImages.length} screenshot(s) attached</p>
+              <div className="flex flex-wrap gap-3">
+                {proofImages.map((_, index) => (
+                  <div key={index} className="relative group rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 w-20 h-20 shadow-md">
+                    <img
+                      src={previewUrls[index]}
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProofImages((prev) => prev.filter((_, i) => i !== index));
+                      }}
+                      className="absolute top-1 right-1 bg-black/80 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Issue Description */}
         <div className="space-y-2">
-          <label className="text-xs font-bold uppercase tracking-wider text-zinc-400">Describe Your Issue *</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-400">Describe Your Issue *</label>
           <textarea
             required
             rows={4}
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm dark:text-white resize-none transition-all"
-            placeholder="Please provide details about your subscription issue..."
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-red-600 outline-none text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-zinc-500 resize-none transition-all"
+            placeholder="Please provide details about your issue..."
           />
-          <p className="text-[10px] text-zinc-500">Minimum 20 characters.</p>
+          <p className="text-[10px] text-gray-500 dark:text-zinc-500">Minimum 20 characters.</p>
         </div>
 
         <button
