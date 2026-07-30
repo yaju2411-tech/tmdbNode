@@ -38,12 +38,81 @@ export const createTransporter = () => {
   });
 };
 
+// Helper to get fresh access token using refresh token from Google OAuth2
+const getGoogleAccessToken = async () => {
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
+  const clientId = process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
+
+  if (!refreshToken || !clientId || !clientSecret) {
+    throw new Error("Missing Google OAuth credentials");
+  }
+
+  const res = await axios.post("https://oauth2.googleapis.com/token", {
+    client_id: clientId,
+    client_secret: clientSecret,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  });
+
+  return res.data.access_token;
+};
+
+// Send email using official Gmail REST API over HTTPS Port 443 (100% bypasses Render SMTP port blocking!)
+const sendViaGmailRestApi = async ({ to, subject, html, fromName = "TMDB Support" }) => {
+  const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "yaju2411@gmail.com";
+  const accessToken = await getGoogleAccessToken();
+
+  const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString("base64")}?=`;
+  const messageParts = [
+    `From: "${fromName}" <${senderEmail}>`,
+    `To: ${to}`,
+    `Subject: ${utf8Subject}`,
+    "Content-Type: text/html; charset=utf-8",
+    "MIME-Version: 1.0",
+    "",
+    html,
+  ];
+  const message = messageParts.join("\r\n");
+
+  const encodedMessage = Buffer.from(message)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  const res = await axios.post(
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+    { raw: encodedMessage },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      timeout: 15000,
+    }
+  );
+
+  console.log("🎉 Email delivered successfully via Gmail REST API (Port 443):", res.data.id);
+  return res.data;
+};
+
 export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Support" }) => {
+  const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
   const brevoApiKey = process.env.BREVO_API_KEY;
   const resendApiKey = process.env.RESEND_API_KEY;
   const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "yaju2411@gmail.com";
 
-  // 1. Try Brevo HTTPS API if key is set (300 free emails/day to ANY recipient, no domain required!)
+  // 1. Try Gmail REST API over HTTPS Port 443 if GMAIL_REFRESH_TOKEN is set (100% works on Render!)
+  if (refreshToken) {
+    try {
+      return await sendViaGmailRestApi({ to, subject, html, fromName });
+    } catch (gmailErr) {
+      console.error("Gmail REST API error, falling back to other transports:", gmailErr.response?.data || gmailErr.message);
+    }
+  }
+
+  // 2. Try Brevo HTTPS API if key is set
   if (brevoApiKey) {
     try {
       const response = await axios.post(
@@ -70,7 +139,7 @@ export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Sup
     }
   }
 
-  // 2. Try Resend HTTP API if key is set
+  // 3. Try Resend HTTP API if key is set
   if (resendApiKey) {
     try {
       const response = await axios.post(
@@ -96,7 +165,7 @@ export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Sup
     }
   }
 
-  // 3. Fallback to Nodemailer Transporter
+  // 4. Fallback to Nodemailer Transporter
   try {
     const transporter = createTransporter();
     const info = await transporter.sendMail({
