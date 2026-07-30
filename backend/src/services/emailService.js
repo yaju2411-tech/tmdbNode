@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import axios from "axios";
 
 export const createTransporter = () => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
@@ -37,7 +38,47 @@ export const createTransporter = () => {
   });
 };
 
-const getTransporter = () => createTransporter();
+export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Support" }) => {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "onboarding@resend.dev";
+
+  // 1. Try Resend HTTP API if key is set (bypasses Render SMTP port blocking)
+  if (resendApiKey) {
+    try {
+      const response = await axios.post(
+        "https://api.resend.com/emails",
+        {
+          from: `${fromName} <${senderEmail}>`,
+          to: [to],
+          subject: subject,
+          html: html,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+      console.log("Email delivered via Resend HTTPS API:", response.data);
+      return response.data;
+    } catch (apiErr) {
+      console.error("Resend API failed, falling back to Nodemailer:", apiErr.response?.data || apiErr.message);
+    }
+  }
+
+  // 2. Fallback to Nodemailer Transporter
+  const transporter = createTransporter();
+  const info = await transporter.sendMail({
+    from: `"${fromName}" <${senderEmail}>`,
+    to,
+    subject,
+    html,
+  });
+  console.log("Email delivered via Nodemailer:", info.messageId);
+  return info;
+};
 
 const CATEGORY_LABELS = {
   cant_login: "Can't Login",
@@ -61,11 +102,10 @@ const escapeHtml = (str = "") =>
 
 export const sendOTP = async (email, otp) => {
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"TMDB" <${process.env.EMAIL_USER || process.env.GMAIL_USER}>`,
+    await sendEmailMessage({
       to: email,
       subject: "Verify your TMDB account",
+      fromName: "TMDB",
       html: `
         <div style="font-family:Arial;padding:20px">
           <h2>TMDB Verification</h2>
@@ -88,11 +128,10 @@ export const sendTicketConfirmation = async (email, ticket) => {
     const categoryLabel = CATEGORY_LABELS[ticket.category] || "Other";
     const safeCategoryLabel = escapeHtml(categoryLabel);
 
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"TMDB Support" <${process.env.EMAIL_USER || process.env.GMAIL_USER}>`,
+    await sendEmailMessage({
       to: email,
       subject: `[${ticket.ticketId}] We received your support request — TMDB`,
+      fromName: "TMDB Support",
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0a0a0a; color: #f1f1f1; border-radius: 12px; overflow: hidden;">
           <div style="background: linear-gradient(135deg, #e50914 0%, #b00610 100%); padding: 32px 40px;">
@@ -140,11 +179,10 @@ export const sendAdminTicketAlert = async (ticket) => {
     const categoryLabel = CATEGORY_LABELS[ticket.category] || "Other";
     const safeCategoryLabel = escapeHtml(categoryLabel);
 
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"TMDB Alerts" <${process.env.EMAIL_USER || process.env.GMAIL_USER}>`,
+    await sendEmailMessage({
       to: process.env.EMAIL_USER || process.env.GMAIL_USER,
       subject: `🆕 New Support Ticket [${ticket.ticketId}] — ${categoryLabel}`,
+      fromName: "TMDB Alerts",
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f0f; color: #f1f1f1; border-radius: 12px; overflow: hidden; border: 1px solid #222;">
           <div style="background: #1a1a1a; padding: 24px 32px; border-bottom: 1px solid #333;">
