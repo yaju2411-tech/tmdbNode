@@ -47,13 +47,10 @@ export const register = async (req, res, next) => {
         formData.append("secret", process.env.TURNSTILE_SECRET_KEY);
         formData.append("response", captchaToken);
 
-        try {
-            const captchaRes = await axios.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", formData);
-            if (!captchaRes.data.success) {
-                console.warn("Turnstile API response failed:", captchaRes.data);
-            }
-        } catch (err) {
-            console.error("Turnstile API error:", err.message);
+        const captchaRes = await axios.post("https://challenges.cloudflare.com/turnstile/v0/siteverify", formData);
+
+        if (!captchaRes.data.success) {
+            return next(new AppError("Captcha verification failed. Please try again.", 400));
         }
     }
 
