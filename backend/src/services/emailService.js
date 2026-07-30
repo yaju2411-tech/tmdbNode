@@ -99,73 +99,18 @@ const sendViaGmailRestApi = async ({ to, subject, html, fromName = "TMDB Support
 
 export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Support" }) => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
-  const brevoApiKey = process.env.BREVO_API_KEY;
-  const resendApiKey = process.env.RESEND_API_KEY;
   const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "yaju2411@gmail.com";
 
-  // 1. Try Gmail REST API over HTTPS Port 443 if GMAIL_REFRESH_TOKEN is set (100% works on Render!)
+  // 1. Try Gmail REST API over HTTPS Port 443 if GMAIL_REFRESH_TOKEN is set
   if (refreshToken) {
     try {
       return await sendViaGmailRestApi({ to, subject, html, fromName });
     } catch (gmailErr) {
-      console.error("Gmail REST API error, falling back to other transports:", gmailErr.response?.data || gmailErr.message);
+      console.error("Gmail REST API error, falling back to Nodemailer:", gmailErr.response?.data || gmailErr.message);
     }
   }
 
-  // 2. Try Brevo HTTPS API if key is set
-  if (brevoApiKey) {
-    try {
-      const response = await axios.post(
-        "https://api.brevo.com/v3/smtp/email",
-        {
-          sender: { name: fromName, email: senderEmail },
-          to: [{ email: to }],
-          subject: subject,
-          htmlContent: html,
-        },
-        {
-          headers: {
-            "api-key": brevoApiKey,
-            "Content-Type": "application/json",
-            "accept": "application/json",
-          },
-          timeout: 10000,
-        }
-      );
-      console.log("Email delivered via Brevo HTTPS API:", response.data);
-      return response.data;
-    } catch (apiErr) {
-      console.error("Brevo API failed:", apiErr.response?.data || apiErr.message);
-    }
-  }
-
-  // 3. Try Resend HTTP API if key is set
-  if (resendApiKey) {
-    try {
-      const response = await axios.post(
-        "https://api.resend.com/emails",
-        {
-          from: `${fromName} <onboarding@resend.dev>`,
-          to: [to],
-          subject: subject,
-          html: html,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        }
-      );
-      console.log("Email delivered via Resend HTTPS API:", response.data);
-      return response.data;
-    } catch (apiErr) {
-      console.error("Resend API failed, falling back to Nodemailer:", apiErr.response?.data || apiErr.message);
-    }
-  }
-
-  // 4. Fallback to Nodemailer Transporter
+  // 2. Fallback to Nodemailer Transporter
   try {
     const transporter = createTransporter();
     const info = await transporter.sendMail({
