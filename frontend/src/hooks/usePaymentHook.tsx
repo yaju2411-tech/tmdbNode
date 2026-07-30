@@ -196,15 +196,59 @@ export const usePayment = () => {
         modal: {
           ondismiss: async () => {
             if (isPaymentSuccessful) return;
+
             dispatch({
               type: "FAIL",
               payload: "Payment process closed",
+            });
+
+            try {
+              await api.post("/payment/update-status", {
+                orderId: order.id,
+                status: "cancelled",
+              });
+            } catch (e) {
+              console.warn("Failed to update status on dismiss:", e);
+            }
+
+            toast.info("Payment window closed", {
+              description: `Order ID: ${order.id}. Check your email or retry anytime.`,
+              action: {
+                label: "Copy Order ID",
+                onClick: () => navigator.clipboard.writeText(String(order.id)),
+              },
             });
           },
         },
       };
 
       const rzp = new window.Razorpay(options);
+
+      rzp.on("payment.failed", async function (response: any) {
+        dispatch({
+          type: "FAIL",
+          payload: response.error?.description || "Payment failed",
+        });
+
+        try {
+          await api.post("/payment/update-status", {
+            orderId: order.id,
+            paymentId: response.error?.metadata?.payment_id,
+            status: "failed",
+          });
+        } catch (e) {
+          console.warn("Failed to report payment failure:", e);
+        }
+
+        toast.error("Payment Failed", {
+          description: `Order ID: ${order.id}. Details sent to your email.`,
+          action: {
+            label: "Copy Order ID",
+            onClick: () => navigator.clipboard.writeText(String(order.id)),
+          },
+        });
+      });
+
       rzp.open();
     } catch (err: any) {
       console.error(err);
