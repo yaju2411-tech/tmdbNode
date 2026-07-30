@@ -9,7 +9,10 @@ import nodemailer from "nodemailer";
 import Receipt from "../../models/Receipt.js";
 import { reciptGenerator } from "../../utils/receiptNoGenerator.js";
 import razorpay from "../../config/razorpay.js";
-import { createTransporter } from "../../services/emailService.js";
+import { createTransporter, sendOTP } from "../../services/emailService.js";
+import generateOTP from "../../utils/generateOtp.js";
+import PasswordReset from "../../models/PasswordReset.js";
+import bcrypt from "bcryptjs";
 
 // Fetch all admin profiles
 export const getAdmins = async (req, res, next) => {
@@ -927,11 +930,6 @@ export const resendUserOtpFromAdmin = async (req, res, next) => {
         const ticket = await HelpTicket.findById(req.params.id);
         if (!ticket) return next(new AppError("Ticket not found", 404));
 
-        const generateOTP = (await import("../../utils/generateOtp.js")).default;
-        const { sendOTP } = await import("../../services/emailService.js");
-        const PasswordReset = (await import("../../models/PasswordReset.js")).default;
-        const bcrypt = (await import("bcryptjs")).default;
-
         const otp = generateOTP();
         const hashedOTP = await bcrypt.hash(otp, 10);
 
@@ -946,15 +944,26 @@ export const resendUserOtpFromAdmin = async (req, res, next) => {
             { upsert: true, new: true }
         );
 
-        await sendOTP(ticket.email, otp);
+        let emailSent = false;
+        try {
+            await sendOTP(ticket.email, otp);
+            emailSent = true;
+        } catch (mailErr) {
+            console.error("Failed to deliver OTP email:", mailErr.message || mailErr);
+        }
 
         ticket.status = "in_progress";
-        ticket.adminNote = `Fresh 6-digit OTP sent to ${ticket.email} by admin.`;
+        ticket.adminNote = emailSent
+            ? `Fresh 6-digit OTP sent to ${ticket.email} by admin.`
+            : `OTP generated (${otp}) but email transport failed. Check SMTP credentials in Render.`;
         await ticket.save();
 
         return res.json({
             success: true,
-            message: `Fresh OTP (${otp}) generated and emailed to ${ticket.email}!`,
+            message: emailSent
+                ? `Fresh OTP (${otp}) generated and emailed to ${ticket.email}!`
+                : `Fresh OTP generated (${otp}), but email transport timed out. OTP saved for user.`,
+            otp,
             ticket
         });
     } catch (err) {
@@ -967,11 +976,6 @@ export const sendPasswordResetFromAdmin = async (req, res, next) => {
     try {
         const ticket = await HelpTicket.findById(req.params.id);
         if (!ticket) return next(new AppError("Ticket not found", 404));
-
-        const generateOTP = (await import("../../utils/generateOtp.js")).default;
-        const { sendOTP } = await import("../../services/emailService.js");
-        const PasswordReset = (await import("../../models/PasswordReset.js")).default;
-        const bcrypt = (await import("bcryptjs")).default;
 
         const otp = generateOTP();
         const hashedOTP = await bcrypt.hash(otp, 10);
@@ -987,15 +991,26 @@ export const sendPasswordResetFromAdmin = async (req, res, next) => {
             { upsert: true, new: true }
         );
 
-        await sendOTP(ticket.email, otp);
+        let emailSent = false;
+        try {
+            await sendOTP(ticket.email, otp);
+            emailSent = true;
+        } catch (mailErr) {
+            console.error("Failed to deliver Password Reset email:", mailErr.message || mailErr);
+        }
 
         ticket.status = "in_progress";
-        ticket.adminNote = `Password reset instructions and verification OTP sent to ${ticket.email}.`;
+        ticket.adminNote = emailSent
+            ? `Password reset instructions and verification OTP sent to ${ticket.email}.`
+            : `Password reset OTP generated (${otp}) but email transport failed. Check SMTP credentials.`;
         await ticket.save();
 
         return res.json({
             success: true,
-            message: `Password reset OTP emailed to ${ticket.email}!`,
+            message: emailSent
+                ? `Password reset OTP emailed to ${ticket.email}!`
+                : `Password reset OTP generated (${otp}), but email transport failed. OTP saved.`,
+            otp,
             ticket
         });
     } catch (err) {
