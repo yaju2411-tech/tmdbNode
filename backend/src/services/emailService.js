@@ -1,21 +1,31 @@
 import nodemailer from "nodemailer";
 import axios from "axios";
 
-export const createTransporter = () => {
+export const createTransporter = async () => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
   const emailUser = process.env.EMAIL_USER || process.env.GMAIL_USER;
   const emailPass = process.env.EMAIL_PASS || process.env.GMAIL_PASS;
+  const clientId = process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID;
+  const clientSecret = process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET;
   
   if (refreshToken) {
+    let accessToken = "";
+    try {
+      accessToken = await getGoogleAccessToken();
+    } catch (e) {
+      console.warn("Could not pre-fetch Google Access Token:", e.message);
+    }
+
     return nodemailer.createTransport({
       service: "gmail",
       family: 4, // Force IPv4 to fix ENETUNREACH IPv6 connection failure on Render
       auth: {
         type: "OAuth2",
         user: emailUser,
-        clientId: process.env.GMAIL_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID,
-        clientSecret: process.env.GMAIL_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET,
-        refreshToken: refreshToken,
+        clientId,
+        clientSecret,
+        refreshToken,
+        accessToken,
       },
     });
   }
@@ -27,7 +37,7 @@ export const createTransporter = () => {
     host: process.env.EMAIL_HOST || "smtp.gmail.com",
     port,
     secure,
-    family: 4, // Force IPv4 to fix ENETUNREACH IPv6 connection failure on Render
+    family: 4,
     connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 15000,
@@ -112,7 +122,7 @@ export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Sup
 
   // 2. Fallback to Nodemailer Transporter
   try {
-    const transporter = createTransporter();
+    const transporter = await createTransporter();
     const info = await transporter.sendMail({
       from: `"${fromName}" <${senderEmail}>`,
       to,
