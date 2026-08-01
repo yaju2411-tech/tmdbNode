@@ -5,6 +5,7 @@ import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 import { api } from "../../servicies/api-client";
 import { Sparkles, Send, Loader2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const AIEmailAssistant = ({ isOpen, onClose, ticket }: Props) => {
   const [draft, setDraft] = useState("");
   const [isDrafting, setIsDrafting] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDraft = async () => {
     if (!instruction.trim()) {
@@ -48,7 +50,11 @@ export const AIEmailAssistant = ({ isOpen, onClose, ticket }: Props) => {
         subject: `Response to your Ticket #${ticket.ticketId}`,
         body: draft
       });
+      queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
+      queryClient.refetchQueries({ queryKey: ["adminTickets"] });
       toast.success("Email sent to user!");
+      setDraft("");
+      setInstruction("");
       onClose();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to send email");

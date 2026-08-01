@@ -6,6 +6,7 @@ import {
     updateUserSubscription, getSubscriptionAnalytics, verifyTicketUser,
     resendUserOtpFromAdmin, sendPasswordResetFromAdmin
 } from "../controllers/admin/adminController.js";
+import { verifyLivePaymentId, generateAndSendReceipt } from "../controllers/payment/receiptController.js";
 import protect from "../middleware/authMiddlware.js";
 import adminOnly from "../middleware/adminMiddleware.js";
 import upload from "../middleware/upload.js";
@@ -33,6 +34,8 @@ router.delete("/user/:id", deleteUserByAdmin);
 router.post("/tickets/:id/grant-access", grantManualAccess);
 router.post("/tickets/:id/reset-payment", resetPayment);
 router.post("/tickets/:id/check-razorpay", checkRazorpayStatus);
+router.post("/verify-payment-id", verifyLivePaymentId);
+router.post("/generate-receipt", generateAndSendReceipt);
 
 // Account ticket resolution routes
 router.post("/tickets/:id/verify-user", verifyTicketUser);

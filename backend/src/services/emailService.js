@@ -107,12 +107,12 @@ const sendViaGmailRestApi = async ({ to, subject, html, fromName = "TMDB Support
   return res.data;
 };
 
-export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Support" }) => {
+export const sendEmailMessage = async ({ to, subject, html, attachments, fromName = "TMDB Support" }) => {
   const refreshToken = process.env.GMAIL_REFRESH_TOKEN || process.env.OAUTH_REFRESH_TOKEN || process.env.REFRESH_TOKEN;
   const senderEmail = process.env.EMAIL_USER || process.env.GMAIL_USER || "yaju2411@gmail.com";
 
-  // 1. Try Gmail REST API over HTTPS Port 443 if GMAIL_REFRESH_TOKEN is set
-  if (refreshToken) {
+  // 1. Try Gmail REST API over HTTPS Port 443 if GMAIL_REFRESH_TOKEN is set and no attachments
+  if (refreshToken && (!attachments || attachments.length === 0)) {
     try {
       return await sendViaGmailRestApi({ to, subject, html, fromName });
     } catch (gmailErr) {
@@ -123,12 +123,16 @@ export const sendEmailMessage = async ({ to, subject, html, fromName = "TMDB Sup
   // 2. Fallback to Nodemailer Transporter
   try {
     const transporter = await createTransporter();
-    const info = await transporter.sendMail({
+    const mailOptions = {
       from: `"${fromName}" <${senderEmail}>`,
       to,
       subject,
       html,
-    });
+    };
+    if (attachments && attachments.length > 0) {
+      mailOptions.attachments = attachments;
+    }
+    const info = await transporter.sendMail(mailOptions);
     console.log("Email delivered via Nodemailer:", info.messageId);
     return info;
   } catch (mailErr) {

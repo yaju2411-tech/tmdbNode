@@ -1,20 +1,20 @@
-import Layout from "./components/Layout";
+import Layout from "./components/common/Layout";
 import { createBrowserRouter } from "react-router-dom";
 import { AdminPanel } from "./components/admin/AdminPanel";
-import LoginPage from "./components/LoginPage";
-import MovieDetailPage from "./components/MovieDetailPage";
-import MovieGrid from "./components/MovieGrid";
-import MyMovies from "./components/MyPurchasedMovies";
-import { ResetPassword } from "./components/ResetPassword";
-import { ResetPasswordConform } from "./components/ResetPasswordConform";
-import TvDetailPage from "./components/TvDetailPage";
-import TvGrid from "./components/TvGrid";
+import LoginPage from "./components/auth/LoginPage";
+import MovieDetailPage from "./components/movies/MovieDetailPage";
+import MovieGrid from "./components/movies/MovieGrid";
+import MyMovies from "./components/movies/MyPurchasedMovies";
+import { ResetPassword } from "./components/auth/ResetPassword";
+import { ResetPasswordConform } from "./components/auth/ResetPasswordConform";
+import TvDetailPage from "./components/tv/TvDetailPage";
+import TvGrid from "./components/tv/TvGrid";
 import { AdminProtectedRoute } from "./servicies/AdminProtectedRoute";
 import { RootLayout } from "./servicies/RootLayout";
-import { ReceiptPage } from './components/ReceiptPage'
-import WatchlistPage from "./components/WatchListPage";
-import HomePage from "./components/HomePage";
-import HelpCenterPage from "../src/components/HelpCenterPage";
+import { ReceiptPage } from "./components/receipt/ReceiptPage";
+import WatchlistPage from "./components/common/WatchListPage";
+import HomePage from "./components/common/HomePage";
+import HelpCenterPage from "./components/support/HelpCenterPage";
 
 export const router = createBrowserRouter([
   {

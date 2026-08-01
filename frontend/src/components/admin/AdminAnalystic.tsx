@@ -218,9 +218,6 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
               <option value="success">Success</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
-              <option value="manual_access">Manual</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="verification_failed">Not Verified</option>
             </select>
           </div>
         </div>

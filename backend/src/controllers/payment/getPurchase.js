@@ -26,18 +26,18 @@ export const checkPurchase = async (req, res, next) => {
         const now = new Date();
 
         // Check if user has an active subscription that hasn't expired
-        const isSubscribed = user.subscription && 
-                             user.subscription.status === "active" && 
-                             user.subscription.expiresAt && 
-                             new Date(user.subscription.expiresAt) > now;
-
-        if (isSubscribed) {
-            return res.json({
-                success: true,
-                status: "success",
-                isSubscribed: true,
-                subscription: user.subscription
-            });
+        if (user.subscription && user.subscription.status === "active" && user.subscription.expiresAt) {
+            if (new Date(user.subscription.expiresAt) <= now) {
+                user.subscription.status = "expired";
+                await user.save();
+            } else {
+                return res.json({
+                    success: true,
+                    status: "success",
+                    isSubscribed: true,
+                    subscription: user.subscription
+                });
+            }
         }
 
         const { contentId, contentType } = req.query;

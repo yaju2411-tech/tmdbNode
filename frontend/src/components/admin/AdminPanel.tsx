@@ -53,7 +53,7 @@ export const AdminPanel = () => {
       const res = await api.get("/admin/tickets");
       return res.data?.tickets || [];
     },
-    staleTime: 60000,
+    staleTime: 0,
   });
   const openTicketsCount = tickets.filter((t: any) => t.status === "open").length;
 
@@ -112,7 +112,7 @@ export const AdminPanel = () => {
                       <span className="flex items-center gap-2"><Settings size={16} /> Theme</span>
                       {isDark ? <Sun size={16} className="text-yellow-500" /> : <Moon size={16} className="text-blue-500" />}
                     </Button>
-                    <AdminUpdateProfileDialog adminData={admin[0]} />
+                    <AdminUpdateProfileDialog adminData={adminProfile} />
                     <Button variant="destructive" className="w-full justify-start gap-2 mt-2" onClick={() => adminSignOut()}>
                       <LogOutIcon size={16} /> Sign Out
                     </Button>
@@ -143,22 +143,22 @@ export const AdminPanel = () => {
 
           {/* Desktop User Dropdown & Notify Bell */}
           <div className="hidden md:flex items-center gap-4 me-3">
-            {admin.map((a: any) => (
-              <DropdownMenu key={a.user_id}>
+            {adminProfile && (
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="destructive" size="icon" className="rounded-full">
                     <Avatar>
-                      <AvatarImage src={a.avatar_url || "https://github.com/shadcn.png"} alt="shadcn" />
-                      <AvatarFallback>LR</AvatarFallback>
+                      <AvatarImage src={adminProfile.avatar_url || "https://github.com/shadcn.png"} alt="Admin Avatar" />
+                      <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-gray-100 dark:bg-zinc-900 text-black dark:text-white min-w-[150px] py-3 px-2">
                   <DropdownMenuGroup>
-                    <AdminUpdateProfileDialog adminData={a}>
+                    <AdminUpdateProfileDialog adminData={adminProfile}>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                         <BadgeCheckIcon />
-                        {a.name} (Update Profile)
+                        {adminProfile.name || "Admin"} (Update Profile)
                       </DropdownMenuItem>
                     </AdminUpdateProfileDialog>
                     <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
@@ -172,7 +172,7 @@ export const AdminPanel = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ))}
+            )}
 
             {/* Notification Bell (at right side of avatar on desktop) */}
             <button

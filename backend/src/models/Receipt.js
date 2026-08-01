@@ -22,7 +22,7 @@ const receiptSchema = new mongoose.Schema(
     title:String,
     contentType:{
         type:String,
-        enum:["movie","tv"],
+        enum:["movie","tv","subscription"],
     },
     amount:Number,
     currency:{

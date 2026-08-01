@@ -1,4 +1,5 @@
 import Purchase from "../models/Purchase.js";
+import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import razorpay from "../config/razorpay.js";
 
@@ -70,6 +71,30 @@ export const checkPendingPayments = async (req, res, next) => {
             success: true,
             message: "Successfully synchronized pending payments with Razorpay.",
             results
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Automatically expire user subscriptions whose expiresAt date has passed
+export const expireSubscriptions = async (req, res, next) => {
+    try {
+        const now = new Date();
+        const updateResult = await User.updateMany(
+            {
+                "subscription.status": "active",
+                "subscription.expiresAt": { $lte: now }
+            },
+            {
+                $set: { "subscription.status": "expired" }
+            }
+        );
+
+        return res.json({
+            success: true,
+            message: `Successfully expired ${updateResult.modifiedCount || 0} subscription(s).`,
+            expiredCount: updateResult.modifiedCount || 0
         });
     } catch (err) {
         next(err);

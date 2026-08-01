@@ -19,6 +19,7 @@ import {
   Trash2,
   User,
   CreditCard,
+  Crown,
   Key,
   RotateCcw,
   ChevronLeft,
@@ -107,8 +108,7 @@ export const AdminTickets = () => {
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
   // Grant Access State
-  const [grantContentId, setGrantContentId] = useState("");
-  const [grantContentType, setGrantContentType] = useState("movie");
+  const [grantPlan, setGrantPlan] = useState("quarterly");
 
   const { data: allTickets = [], isLoading, isError, error } = useQuery({
     queryKey: ["adminTickets"],
@@ -212,18 +212,19 @@ export const AdminTickets = () => {
   });
 
   const grantAccessMutation = useMutation({
-    mutationFn: async ({ id, contentId, contentType }: { id: string; contentId: string; contentType: string }) => {
-      await api.post(`/admin/tickets/${id}/grant-access`, { contentId, contentType });
+    mutationFn: async ({ id, plan }: { id: string; plan: string }) => {
+      await api.post(`/admin/tickets/${id}/grant-access`, { plan, contentType: "subscription" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
-      toast.success("Access granted and ticket resolved!");
+      queryClient.refetchQueries({ queryKey: ["adminTickets"] });
+      toast.success("VIP Membership Pass granted and ticket resolved!");
       setIsGrantAccessOpen(false);
       setIsDetailsOpen(false);
       setIsRazorpayModalOpen(false);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to grant access");
+      toast.error(error.response?.data?.message || "Failed to grant VIP pass");
     }
   });
 
@@ -606,8 +607,7 @@ export const AdminTickets = () => {
                                 if (ticket.status === "open") {
                                   updateStatusMutation.mutate({ id: ticket._id, status: "in_progress" });
                                 }
-                                setGrantContentId(ticket.contentId || "");
-                                setGrantContentType(ticket.contentType || "movie");
+                                setGrantPlan(ticket.plan || "quarterly");
                                 setSelectedTicket(ticket);
                                 setIsGrantAccessOpen(true);
                               }}>
@@ -859,8 +859,7 @@ export const AdminTickets = () => {
             {razorpayData?.hasCapturedPayment && selectedTicket && (
               <Button
                 onClick={() => {
-                  setGrantContentId(selectedTicket.contentId || "");
-                  setGrantContentType(selectedTicket.contentType || "movie");
+                  setGrantPlan(selectedTicket.plan || "quarterly");
                   setIsRazorpayModalOpen(false);
                   setIsGrantAccessOpen(true);
                 }}
@@ -1016,14 +1015,13 @@ export const AdminTickets = () => {
                     if (selectedTicket?.status === "open") {
                       updateStatusMutation.mutate({ id: selectedTicket._id, status: "in_progress" });
                     }
-                    setGrantContentId(selectedTicket?.contentId || "");
-                    setGrantContentType(selectedTicket?.contentType || "movie");
+                    setGrantPlan(selectedTicket?.plan || "quarterly");
                     setIsGrantAccessOpen(true);
                   }}
                   className="w-full sm:w-auto bg-[#E50914] hover:bg-red-700 text-white font-semibold"
                 >
-                  <Key className="w-4 h-4 mr-2" />
-                  Grant Access
+                  <Crown className="w-4 h-4 mr-2" />
+                  Grant VIP Pass
                 </Button>
               )}
               {selectedTicket && selectedTicket.status !== "resolved" && (
@@ -1054,32 +1052,26 @@ export const AdminTickets = () => {
 
       {/* Grant Access Dialog */}
       <Dialog open={isGrantAccessOpen} onOpenChange={setIsGrantAccessOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-zinc-950 text-white border-zinc-800 shadow-2xl">
+        <DialogContent className="sm:max-w-[450px] bg-zinc-950 text-white border-zinc-800 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Grant Manual Access</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Provide access to the requested content. This will automatically resolve the ticket.
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-red-500">
+              <Crown className="w-5 h-5 text-amber-400" /> Grant VIP Membership Pass
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400 text-xs">
+              Manually grant VIP access to <strong className="text-white">{selectedTicket?.email}</strong>. This updates user subscription, creates a paid receipt, emails the PDF receipt, and resolves the ticket.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-300">Content ID (TMDB)</label>
-              <Input
-                value={grantContentId}
-                onChange={(e) => setGrantContentId(e.target.value)}
-                placeholder="e.g., 1228710"
-                className="bg-zinc-900 border-zinc-800 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-300">Content Type</label>
-              <Select value={grantContentType} onValueChange={setGrantContentType}>
-                <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white">
-                  <SelectValue placeholder="Select type" />
+              <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Select VIP Subscription Plan</label>
+              <Select value={grantPlan} onValueChange={setGrantPlan}>
+                <SelectTrigger className="bg-zinc-900 border-zinc-800 text-white font-semibold">
+                  <SelectValue placeholder="Select plan" />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-900 text-white border-zinc-800">
-                  <SelectItem value="movie">Movie</SelectItem>
-                  <SelectItem value="tv">TV Show</SelectItem>
+                  <SelectItem value="monthly">Monthly Pass (₹199 - 30 Days)</SelectItem>
+                  <SelectItem value="quarterly">Quarterly VIP Pass (₹399 - 90 Days)</SelectItem>
+                  <SelectItem value="yearly">Annual VIP Pass (₹1499 - 365 Days)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1088,19 +1080,17 @@ export const AdminTickets = () => {
             <Button variant="outline" className="border-zinc-800 text-zinc-300" onClick={() => setIsGrantAccessOpen(false)}>Cancel</Button>
             <Button
               onClick={() => {
-                if (!grantContentId.trim()) return toast.error("Content ID is required");
                 if (selectedTicket) {
                   grantAccessMutation.mutate({
                     id: selectedTicket._id,
-                    contentId: grantContentId,
-                    contentType: grantContentType
+                    plan: grantPlan
                   });
                 }
               }}
               disabled={grantAccessMutation.isPending}
               className="bg-[#E50914] hover:bg-red-700 text-white font-semibold"
             >
-              {grantAccessMutation.isPending ? "Granting..." : "Confirm & Resolve"}
+              {grantAccessMutation.isPending ? "Granting VIP Pass..." : "Confirm & Grant VIP Pass"}
             </Button>
           </DialogFooter>
         </DialogContent>
