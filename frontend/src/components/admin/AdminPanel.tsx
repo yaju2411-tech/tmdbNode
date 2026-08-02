@@ -17,9 +17,10 @@ import { FaChartPie, FaUser } from "react-icons/fa";
 import { MdMovie, MdSupportAgent } from "react-icons/md";
 import { AdminUpdateProfileDialog } from "./AdminUpdateProfileDialog";
 import { AdminTickets } from "./AdminTickets";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../servicies/api-client";
 import { useTheme } from "../../hooks/useTheme";
+import useSocketListener from "../../hooks/useSocketListener";
 
 export const AdminPanel = () => {
   const { admin, adminSignOut } = useAdminHook();
@@ -27,6 +28,9 @@ export const AdminPanel = () => {
   const [tab, setTab] = useState<"admin" | "users" | "mpurchases" | "analytics" | "helpNotify">(location.state?.tab || "analytics");
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Real-time socket listener for admin & user query invalidations
+  useSocketListener();
 
   // Handle location state updates if the user clicks the bell while already on the AdminPanel page
   useEffect(() => {

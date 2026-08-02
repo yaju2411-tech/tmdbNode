@@ -1,5 +1,6 @@
 import Watchlist from "../models/Watchlist.js";
 import AppError from "../utils/appError.js";
+import { broadcastEvent } from "../config/socket.js";
 
 // Fetch all watchlist items for the current user
 export const getWatchlist = async (req, res, next) => {
@@ -38,6 +39,8 @@ export const addToWatchlist = async (req, res, next) => {
             poster_path
         });
 
+        broadcastEvent("watchlist_updated", { userId: req.user._id });
+
         return res.status(201).json({ success: true, item });
     } catch (err) {
         next(err);
@@ -57,6 +60,8 @@ export const removeFromWatchlist = async (req, res, next) => {
             media_id: Number(media_id),
             media_type
         });
+
+        broadcastEvent("watchlist_updated", { userId: req.user._id });
 
         return res.json({ success: true, message: "Removed from watchlist successfully" });
     } catch (err) {

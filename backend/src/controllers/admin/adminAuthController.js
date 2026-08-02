@@ -2,6 +2,7 @@ import User from "../../models/User.js";
 import AppError from "../../utils/appError.js";
 import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 // Fetch all admin profiles
 export const getAdmins = async (req, res, next) => {
@@ -79,6 +80,9 @@ export const updateUserByAdmin = async (req, res, next) => {
 
         await user.save();
 
+        broadcastEvent("user_updated", { user });
+        broadcastEvent("stats_updated", {});
+
         return res.json({
             success: true,
             message: "User updated successfully",
@@ -128,6 +132,9 @@ export const updateAdmin = async (req, res, next) => {
 
         await adminUser.save();
 
+        broadcastEvent("user_updated", { user: adminUser });
+        broadcastEvent("stats_updated", {});
+
         return res.json({
             success: true,
             message: "Admin profile updated successfully",
@@ -158,6 +165,9 @@ export const deleteUserByAdmin = async (req, res, next) => {
 
         await User.findByIdAndDelete(id);
 
+        broadcastEvent("user_updated", { userId: id, deleted: true });
+        broadcastEvent("stats_updated", {});
+
         return res.json({
             success: true,
             message: "User deleted successfully"
@@ -184,6 +194,9 @@ export const forceVerifyUser = async (req, res, next) => {
         if (!user) {
             return next(new AppError("User not found with that email", 404));
         }
+
+        broadcastEvent("user_updated", { user });
+        broadcastEvent("stats_updated", {});
 
         return res.json({
             success: true,

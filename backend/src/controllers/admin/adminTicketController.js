@@ -7,6 +7,7 @@ import axios from "axios";
 import bcrypt from "bcryptjs";
 import generateOTP from "../../utils/generateOtp.js";
 import { sendEmailMessage, sendOTP } from "../../services/emailService.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 // Fetch all support tickets with enriched purchase info
 export const getTickets = async (req, res, next) => {
@@ -103,6 +104,8 @@ export const updateTicketStatus = async (req, res, next) => {
             { new: true, runValidators: true }
         );
 
+        broadcastEvent("ticket_updated", { ticket });
+
         return res.json({
             success: true,
             ticket,
@@ -132,6 +135,8 @@ export const deleteTicket = async (req, res, next) => {
         }
 
         await HelpTicket.findByIdAndDelete(id);
+
+        broadcastEvent("ticket_updated", { ticketId: id, deleted: true });
 
         return res.json({
             success: true,

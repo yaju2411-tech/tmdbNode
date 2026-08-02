@@ -96,4 +96,14 @@ export const getIO = () => {
     return io;
 };
 
+export const broadcastEvent = (event, data) => {
+    try {
+        if (io) {
+            io.emit(event, data);
+        }
+    } catch (err) {
+        console.error(`Failed to broadcast socket event '${event}':`, err);
+    }
+};
+
 export default initSocket;

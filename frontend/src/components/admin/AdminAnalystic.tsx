@@ -200,21 +200,14 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
     </div>
 
       <div className="bg-white dark:bg-zinc-950 rounded-lg border border-gray-200 dark:border-zinc-900 shadow-xl overflow-hidden mt-6">
-        <div className="p-6 border-b border-gray-200 dark:border-zinc-900 flex flex-col sm:flex-row justify-between gap-4">
-          <h2 className="text-lg font-semibold">Invoices</h2>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="ghost" className="bg-green-500 text-white dark:bg-green-700" onClick={() => { setTab("mpurchases");}}>View All</Button>
-            <select className="px-2 py-1 rounded-md dark:bg-zinc-900"
-              onChange={(e) => {setFilters({ ...filters, type: e.target.value });setPage(1);}}
-            >
-              <option value="all">Content Type</option>
-              <option value="movie">Movies</option>
-              <option value="tv">TV Shows</option>
-            </select>
-            <select className="px-2 py-1 rounded-md dark:bg-zinc-900"
+        <div className="p-6 border-b border-gray-200 dark:border-zinc-900 flex flex-col sm:flex-row justify-between gap-4 items-center">
+          <h2 className="text-lg font-bold tracking-wide">Invoices</h2>
+          <div className="flex flex-wrap gap-3 items-center">
+            <Button variant="ghost" className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4" onClick={() => { setTab("mpurchases");}}>View All</Button>
+            <select className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-800 dark:bg-zinc-900 text-sm font-semibold focus:outline-none"
               onChange={(e) => {setStatus(e.target?.value);setPage(1);}}
             >
-              <option value="">Status</option>
+              <option value="">Status: All</option>
               <option value="success">Success</option>
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
@@ -223,7 +216,7 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
         </div>
         <div className="overflow-x-auto">
            <table className="w-full text-md text-left">
-            <thead className="text-sm uppercase bg-gray-100 dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400">
+            <thead className="text-xs uppercase bg-gray-100 dark:bg-zinc-900/50 text-gray-500 dark:text-gray-400 tracking-wider">
               <tr>
                 <th className="px-6 py-4">Name</th>
                 <th className="px-6 py-4">Type</th>
@@ -236,47 +229,43 @@ export const AdminAnalytics = ({setTab}:{setTab:(tab:any)=>void}) => {
               {paginatedData.length === 0 ? (
                 <tr className="cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-900/30">
                   <td colSpan={5} className="text-center py-6 text-gray-500">
-                    No data found
+                    No invoice records found
                   </td>
                 </tr>
               ) : (
                 paginatedData.map((item: any) => (
                   <tr
                     key={item.id}
-                    className="border-b border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800 transition"
+                    className="border-b border-gray-200 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/40 transition"
                   >
-                    <td className="px-6 py-4">
-                      {item.movie_name || "N/A"}
+                    <td className="px-6 py-4 font-semibold">
+                      {item.movie_name || (item.amount === 1499 ? "TMDB VIP Annual Pass" : item.amount === 399 ? "TMDB VIP Quarterly Pass" : "TMDB VIP Monthly Pass")}
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          item.content_type === "movie"
-                            ? "bg-blue-500/20 text-blue-400"
-                            : "bg-yellow-500/20 text-yellow-400"
-                        }`}
+                        className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 capitalize"
                       >
-                        {item.content_type}
+                        {item.content_type || "subscription"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 flex">
-                      <FaRupeeSign className="mt-1"/> {item.amount}
+                    <td className="px-6 py-4 font-bold text-emerald-400">
+                      ₹{item.amount}
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          item.status === "success"
-                            ? "bg-green-500/20 text-green-400 "
+                        className={`px-2.5 py-1 rounded-md text-xs font-bold capitalize ${
+                          item.status === "success" || item.status === "paid"
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                             : item.status === "pending"
-                            ? "bg-yellow-500/20 text-yellow-400 "
-                            : "bg-red-500/20 text-red-400 "
+                            ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                            : "bg-red-500/20 text-red-400 border border-red-500/30"
                         }`}
                       >
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      {new Date(item.created_at).toLocaleDateString()}
+                    <td className="px-6 py-4 text-xs text-gray-400">
+                      {new Date(item.created_at || item.createdAt).toLocaleDateString("en-US")}
                     </td>
                   </tr>
                 ))

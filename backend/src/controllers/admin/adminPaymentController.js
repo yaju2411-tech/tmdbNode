@@ -7,6 +7,7 @@ import axios from "axios";
 import razorpay from "../../config/razorpay.js";
 import { reciptGenerator } from "../../utils/receiptNoGenerator.js";
 import { sendReceiptEmailHelper } from "../payment/receiptController.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 // Fetch paginated purchase list with populated user information
 export const getMoviePurchases = async (req, res, next) => {
@@ -62,6 +63,9 @@ export const getMoviePurchases = async (req, res, next) => {
                     title: 1,
                     poster: 1,
                     contentType: 1,
+                    plan: 1,
+                    startDate: 1,
+                    expiresAt: 1,
                     amount: 1,
                     razorpayOrderId: 1,
                     razorpayPaymentId: 1,
@@ -216,6 +220,12 @@ export const grantManualAccess = async (req, res, next) => {
             console.error("Failed to email receipt PDF:", pdfErr);
         }
 
+        broadcastEvent("subscription_updated", { userId: user._id, subscription: user.subscription });
+        broadcastEvent("payment_success", { userId: user._id, subscription: user.subscription });
+        broadcastEvent("ticket_updated", { ticket });
+        broadcastEvent("purchase_created", { purchase: existingPurchase });
+        broadcastEvent("stats_updated", {});
+
         return res.json({
             success: true,
             message: `Successfully granted manual access to ${title} and resolved ticket!`,
@@ -266,6 +276,9 @@ export const resetPayment = async (req, res, next) => {
 
         ticket.status = "in_progress";
         await ticket.save();
+
+        broadcastEvent("subscription_updated", { userId: user._id, subscription: user.subscription });
+        broadcastEvent("ticket_updated", { ticket });
 
         return res.json({
             success: true,

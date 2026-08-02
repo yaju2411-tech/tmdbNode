@@ -4,6 +4,7 @@ import Purchase from "../../models/Purchase.js";
 import Receipt from "../../models/Receipt.js";
 import generateReceiptNumber from "../../utils/generateReceiptNumber.js";
 import { sendPaymentEmail, sendPaymentFailedEmail } from "../../services/paymentEmailService.js";
+import { broadcastEvent } from "../../config/socket.js";
 import razorpay from "../../config/razorpay.js";
 
 export const verifyPayment = async (req, res, next) => {
@@ -103,6 +104,11 @@ export const verifyPayment = async (req, res, next) => {
         } catch (emailErr) {
             console.error("Failed to send subscription confirmation email:", emailErr);
         }
+
+        broadcastEvent("payment_success", { userId: req.user._id, subscription: req.user.subscription, purchase });
+        broadcastEvent("subscription_updated", { userId: req.user._id, subscription: req.user.subscription });
+        broadcastEvent("purchase_created", { purchase });
+        broadcastEvent("stats_updated", {});
 
         return res.json({
             success: true,

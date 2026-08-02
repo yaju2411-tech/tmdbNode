@@ -2,6 +2,7 @@ import User from "../../models/User.js";
 import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import AppError from "../../utils/appError.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 export const updateProfile = async (req, res, next) => {
     try {
@@ -26,6 +27,9 @@ export const updateProfile = async (req, res, next) => {
             };
         }
         await user.save();
+
+        broadcastEvent("user_updated", { user });
+
         return res.json({
             success:true,
             message:"Profile updated successfully.",

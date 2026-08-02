@@ -7,6 +7,7 @@ import GlobalSearch from "./SearchComponent";
 import { useWatchList } from "../../hooks/useWatchList";
 import { GoToTop } from "./GoToTop";
 import useSignUpHook from "../../hooks/useSignUpHook";
+import useSocketListener from "../../hooks/useSocketListener";
 
 const Layout = () => {
   const [selectedGenre, setSelectedGenre] = useState<number | null>(null);
@@ -21,6 +22,9 @@ const Layout = () => {
   const location = useLocation();
   const isTv = location.pathname.includes("/tv");
   const { data: watchlist = [] } = useWatchList(user?.id);
+
+  // Activate real-time socket invalidations for user & admin queries
+  useSocketListener();
 
   // Clear search text automatically whenever route location changes
   useEffect(() => {

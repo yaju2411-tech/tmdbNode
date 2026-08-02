@@ -62,8 +62,8 @@ export const useAdminHook = (filters: {
           }
         });
         return {
-          rows: res.data.rows || [],
-          total: res.data.total || 0,
+          rows: res.data.purchases || res.data.rows || [],
+          total: res.data.pagination?.total || res.data.total || 0,
         };
       },
       placeholderData: keepPreviousData,

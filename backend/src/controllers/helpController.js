@@ -6,6 +6,7 @@ import Receipt from "../models/Receipt.js";
 import AppError from "../utils/appError.js";
 import { sendTicketConfirmation, sendAdminTicketAlert } from "../services/emailService.js";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import { broadcastEvent } from "../config/socket.js";
 
 const getSystemPrompt = () => {
   const supportEmail = process.env.SUPPORT_EMAIL || "yaju2411@gmail.com";
@@ -166,6 +167,8 @@ export const submitTicket = async (req, res, next) => {
     if (proofImagesUrls.length > 0) ticketData.proofImages = proofImagesUrls;
 
     const ticket = await HelpTicket.create(ticketData);
+
+    broadcastEvent("ticket_created", { ticket });
 
     // Send emails in parallel — don't block response if one fails
     await Promise.allSettled([
