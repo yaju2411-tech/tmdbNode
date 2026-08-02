@@ -4,7 +4,6 @@ import User from "../../models/User.js";
 import PendingUser from "../../models/PendingUser.js";
 
 import AppError from "../../utils/appError.js";
-import { checkIsAdminEmail } from "../../utils/adminCheck.js";
 
 export const verifyOTP = async (req, res, next) => {
   try {
@@ -64,15 +63,13 @@ export const verifyOTP = async (req, res, next) => {
       );
     }
 
-    const isAdmin = checkIsAdminEmail(pendingUser.email);
-
     // Create verified user
     await User.create({
       name: pendingUser.name,
       email: pendingUser.email,
       password: pendingUser.password,
       provider: "local",
-      role: isAdmin ? "admin" : "user",
+      role: "user",
       isEmailVerified: true,
       isCaptchaVerified: true,
     });
