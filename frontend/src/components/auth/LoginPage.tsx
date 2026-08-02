@@ -192,7 +192,7 @@ export default function LoginPage() {
                 : "Create Account"}
             </h2>
 
-            <p className="text-zinc-400 mt-2">
+            <p className="text-gray-500 dark:text-zinc-400 mt-2">
               {isLogin
                 ? "Login to continue"
                 : "Signup to get started"}
@@ -289,7 +289,7 @@ export default function LoginPage() {
                 </div>
 
                 {!isLogin &&
-                  <Captcha setVerified={setVerified} />}
+                  <Captcha setVerified={setVerified} theme={isDark ? "dark" : "light"} />}
 
                 {/* SUBMIT */}
                 <button
@@ -341,16 +341,17 @@ export default function LoginPage() {
           </button>
 
           {/* SWITCH */}
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-gray-500 dark:text-zinc-400">
             {isLogin
               ? "Don't have an account?"
               : "Already have an account?"}
 
             <button
+              type="button"
               onClick={() =>
                 setIsLogin(!isLogin)
               }
-              className="ml-2 text-white font-medium hover:underline"
+              className="ml-2 text-red-600 dark:text-red-500 font-semibold hover:underline"
             >
               {isLogin
                 ? "Sign Up"
@@ -362,10 +363,10 @@ export default function LoginPage() {
 
       {/* OTP DIALOG */}
       <Dialog open={showOtpDialog} onOpenChange={setShowOtpDialog}>
-        <DialogContent className="sm:max-w-md bg-zinc-950 text-white border border-zinc-800">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-950 text-gray-900 dark:text-white border border-gray-200 dark:border-zinc-800">
           <DialogHeader>
             <DialogTitle>Email Verification</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-gray-500 dark:text-zinc-400">
               Please enter the OTP verification code sent to your email.
             </DialogDescription>
           </DialogHeader>
@@ -375,7 +376,7 @@ export default function LoginPage() {
               placeholder="Enter OTP"
               value={otpValue}
               onChange={(e) => setOtpValue(e.target.value)}
-              className="bg-zinc-900 border-zinc-800 focus-visible:ring-red-600"
+              className="bg-gray-50 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white focus-visible:ring-red-600"
             />
           </div>
           <DialogFooter className="sm:justify-between items-center w-full">
@@ -383,7 +384,7 @@ export default function LoginPage() {
               type="button"
               variant="link"
               onClick={() => resendSignupOtp(email)}
-              className="text-zinc-400 hover:text-white px-0"
+              className="text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white px-0"
             >
               Resend OTP
             </Button>
@@ -392,7 +393,7 @@ export default function LoginPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowOtpDialog(false)}
-                className="bg-transparent border-zinc-800 text-white hover:bg-zinc-800 hover:text-white"
+                className="bg-transparent border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800"
               >
                 Cancel
               </Button>

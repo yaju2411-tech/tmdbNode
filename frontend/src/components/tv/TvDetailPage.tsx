@@ -9,13 +9,13 @@ const TvDetailPage = () => {
   const [show, setShow] = useState(false);
   const { user, watchlist } = useOutletContext<any>();
 
-  if (!tvId) return <div className="text-white mt-10 text-center">No TV Show Found</div>;
+  if (!tvId) return <div className="text-gray-900 dark:text-white mt-10 text-center font-bold">No TV Show Found</div>;
 
   return (
-    <div className="min-h-screen text-white pb-10 w-full px-5">
-      <TvDetailTrailer onMoreDetail={() => setShow(true)} />
+    <div className="min-h-screen text-gray-900 dark:text-white pb-10 w-full px-2 sm:px-6">
+      <TvDetailTrailer onMoreDetail={() => setShow(!show)} />
       {show && (
-        <div className="z-10 mt-10 mx-auto">
+        <div className="z-10 mt-4 sm:mt-8 mx-auto">
           <TvDetailInfo onClose={() => setShow(false)} />
         </div>
       )}

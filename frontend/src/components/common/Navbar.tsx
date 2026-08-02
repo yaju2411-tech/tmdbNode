@@ -1,4 +1,4 @@
-import { SearchIcon, Eye, EyeOff, X, SunIcon, MoonIcon, MenuIcon, HelpCircle, Crown } from "lucide-react";
+import { SearchIcon, Eye, EyeOff, X, SunIcon, MoonIcon, MenuIcon, HelpCircle, Crown, Tv, Film, DollarSign } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import useSignUpHook from "../../hooks/useSignUpHook";
@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { MdAccountBox, MdOutlineAdminPanelSettings, MdUpdate } from "react-icons/md";
 import { FaSignOutAlt } from "react-icons/fa";
 import SubscriptionModal from "../payment/SubscriptionModal";
@@ -134,195 +135,230 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <Button
-            onClick={() => setIsSubModalOpen(true)}
-            className={`h-8 sm:h-9 px-2.5 sm:px-3.5 text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center gap-1 sm:gap-1.5 shadow-md ${
-              isVipActive
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-950/30"
-                : "bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-700 hover:to-amber-700 text-white shadow-red-950/30"
-            }`}
-          >
-            <Crown className="w-3.5 h-3.5 fill-current shrink-0" />
-            <span className="hidden sm:inline">{isVipActive ? "VIP Active" : "Upgrade to VIP"}</span>
-            <span className="sm:hidden">{isVipActive ? "VIP" : "VIP"}</span>
-          </Button>
+        <TooltipProvider>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* 1. VIP Active / Upgrade Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => setIsSubModalOpen(true)}
+                  className={`h-8 sm:h-9 px-2.5 sm:px-3 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer ${isVipActive
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-950/30"
+                      : "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-950/30"
+                    }`}
+                >
+                  <Crown className="w-4 h-4 fill-current shrink-0" />
+                  <span className="hidden lg:inline">{isVipActive ? "VIP Active" : "VIP"}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{isVipActive ? "VIP Active" : "Upgrade to VIP"}</TooltipContent>
+            </Tooltip>
 
-          <div className="hidden md:flex items-center gap-4 font-semibold mr-2">
-            <Link to="/app/discover/tv" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm">
-              TV Shows
-            </Link>
-            <Link to="/app/discover/movie" className="text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors text-sm">
-              Movies
-            </Link>
-          </div>
+            {/* 2. TV Shows Icon Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/app/discover/tv"
+                  className="hidden md:flex items-center justify-center p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-[#E50914] dark:hover:text-[#E50914] transition-all"
+                  aria-label="TV Shows"
+                >
+                  <Tv size={19} />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>TV Shows</TooltipContent>
+            </Tooltip>
 
-          {userData && (
-            <Link to="/app/myMovies" className="text-[#E50914] hover:text-red-600 font-bold text-xs sm:text-sm hidden sm:inline-block">
-              Purchased
-            </Link>
-          )}
+            {/* 3. Movies Icon Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/app/discover/movie"
+                  className="hidden md:flex items-center justify-center p-2 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-[#E50914] dark:hover:text-[#E50914] transition-all"
+                  aria-label="Movies"
+                >
+                  <Film size={19} />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Movies</TooltipContent>
+            </Tooltip>
 
-          {!isLoading && userData && (
-            <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="flex cursor-pointer border border-gray-300 dark:border-zinc-800 hover:border-gray-500 transition-colors w-8 h-8 sm:w-9 sm:h-9">
-                    <AvatarImage src={userData.avatar_url} />
-                    <AvatarFallback className="bg-gray-200 dark:bg-zinc-800 text-black dark:text-white text-xs font-bold">
-                      {userData.name?.charAt(0) || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-white dark:bg-zinc-950 text-black dark:text-white border-gray-200 dark:border-zinc-800 space-y-1" align="end">
-                  <DropdownMenuLabel className="flex items-center gap-3">
-                    <MdAccountBox />
-                    <p>My Account</p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-zinc-800" />
-                  {role === "admin" && (
+            {/* 4. Purchased Icon Button */}
+            {userData && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to="/app/myMovies"
+                    className="hidden md:flex items-center justify-center p-2 rounded-xl text-amber-600 dark:text-amber-500 hover:bg-amber-500/10 transition-all font-bold"
+                    aria-label="Purchased"
+                  >
+                    <DollarSign size={19} />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Purchased</TooltipContent>
+              </Tooltip>
+            )}
+
+            {!isLoading && userData && (
+              <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="hidden sm:flex cursor-pointer border border-gray-300 dark:border-zinc-800 hover:border-gray-500 transition-colors w-8 h-8 sm:w-9 sm:h-9">
+                      <AvatarImage src={userData.avatar_url} />
+                      <AvatarFallback className="bg-gray-200 dark:bg-zinc-800 text-black dark:text-white text-xs font-bold">
+                        {userData.name?.charAt(0) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-white dark:bg-zinc-950 text-black dark:text-white border-gray-200 dark:border-zinc-800 space-y-1" align="end">
+                    <DropdownMenuLabel className="flex items-center gap-3">
+                      <MdAccountBox />
+                      <p>My Account</p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-gray-200 dark:bg-zinc-800" />
+                    {role === "admin" && (
+                      <DropdownMenuItem
+                        className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors font-semibold text-[#E50914]"
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          navigate("/adminPanel");
+                        }}
+                      >
+                        <MdOutlineAdminPanelSettings />
+                        <p>Admin Panel</p>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
-                      className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors font-semibold text-[#E50914]"
+                      className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
                       onSelect={(e) => {
                         e.preventDefault();
-                        navigate("/adminPanel");
+                        setIsProfileOpen(true);
                       }}
                     >
-                      <MdOutlineAdminPanelSettings />
-                      <p>Admin Panel</p>
+                      <MdUpdate />
+                      <p>Update Profile</p>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      setIsProfileOpen(true);
-                    }}
-                  >
-                    <MdUpdate />
-                    <p>Update Profile</p>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
-                    onSelect={() => navigate("/help")}
-                  >
-                    <HelpCircle />
-                    <p>Help</p>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
-                    onClick={toggleTheme}
-                  >
-                    {isDark ? <SunIcon /> : <MoonIcon />}
-                    {isDark ? <p>LightMode</p> : <p>DarkMode</p>}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="gap-3 focus:bg-red-100 dark:focus:bg-red-900/50 focus:text-red-600 dark:focus:text-red-500 cursor-pointer text-red-600 dark:text-red-500 transition-colors"
-                    onSelect={() => logout()}
-                  >
-                    <FaSignOutAlt />
-                    <p>Sign out</p>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 text-black dark:text-white border border-gray-200 dark:border-zinc-800 shadow-2xl transition-colors">
-                <DialogHeader>
-                  <DialogTitle>Update Profile</DialogTitle>
-                </DialogHeader>
-                <div className="flex justify-center">
-                  <img
-                    src={profilePreview || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"}
-                    alt="Preview"
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200 dark:border-zinc-800 shadow-md"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Avatar Image</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProfileFile(null);
-                        setProfilePreview(undefined);
-                      }}
-                      className="text-xs text-[#E50914] hover:underline"
+                    <DropdownMenuItem
+                      className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
+                      onSelect={() => navigate("/help")}
                     >
-                      Remove
-                    </button>
-                  </div>
-                  <Input
-                    accept="image/*"
-                    className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 file:text-[#E50914] transition-colors"
-                    type="file"
-                    ref={fileRef}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setProfileFile(e.target.files[0]);
-                        setProfilePreview(URL.createObjectURL(e.target.files[0]));
-                      }
-                    }}
-                  />
-                </div>
-                <div className="grid gap-4">
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">Name</label>
-                    <Input
-                      className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors"
-                      value={profileName}
-                      onChange={(e) => setProfileName(e.target.value)}
-                      type="text"
+                      <HelpCircle />
+                      <p>Help</p>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="gap-3 focus:bg-gray-100 dark:focus:bg-zinc-800 focus:text-black dark:focus:text-white cursor-pointer transition-colors"
+                      onClick={toggleTheme}
+                    >
+                      {isDark ? <SunIcon /> : <MoonIcon />}
+                      {isDark ? <p>LightMode</p> : <p>DarkMode</p>}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="gap-3 focus:bg-red-100 dark:focus:bg-red-900/50 focus:text-red-600 dark:focus:text-red-500 cursor-pointer text-red-600 dark:text-red-500 transition-colors"
+                      onSelect={() => logout()}
+                    >
+                      <FaSignOutAlt />
+                      <p>Sign out</p>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DialogContent className="sm:max-w-[425px] bg-white dark:bg-zinc-950 text-black dark:text-white border border-gray-200 dark:border-zinc-800 shadow-2xl transition-colors">
+                  <DialogHeader>
+                    <DialogTitle>Update Profile</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex justify-center">
+                    <img
+                      src={profilePreview || "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"}
+                      alt="Preview"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-gray-200 dark:border-zinc-800 shadow-md"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">Email</label>
-                    <Input
-                      className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors"
-                      value={profileEmail}
-                      onChange={(e) => setProfileEmail(e.target.value)}
-                      type="email"
-                    />
-                  </div>
-                  {!isGoogle && (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium">New Password</label>
-                      <div className="relative">
-                        <Input
-                          className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors pr-10"
-                          value={profilePassword}
-                          onChange={(e) => setProfilePassword(e.target.value)}
-                          type={showProfilePassword ? "text" : "password"}
-                          placeholder="Leave blank to keep same"
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setShowProfilePassword(!showProfilePassword);
-                          }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                        >
-                          {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Avatar Image</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileFile(null);
+                          setProfilePreview(undefined);
+                        }}
+                        className="text-xs text-[#E50914] hover:underline"
+                      >
+                        Remove
+                      </button>
                     </div>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button
-                    className="bg-[#E50914] hover:bg-red-700 text-white transition-colors"
-                    disabled={updateProfileLoading}
-                    onClick={handleUpdateProfile}
-                  >
-                    {updateProfileLoading ? "updating..." : "save changes"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
-          <Button onClick={() => setOpenSidebar(true)} className="md:hidden rounded-lg bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-500 p-2 h-8 w-8">
-            <MenuIcon size={18} />
-          </Button>
-        </div>
+                    <Input
+                      accept="image/*"
+                      className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 text-gray-700 dark:text-gray-300 file:text-[#E50914] transition-colors"
+                      type="file"
+                      ref={fileRef}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setProfileFile(e.target.files[0]);
+                          setProfilePreview(URL.createObjectURL(e.target.files[0]));
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="grid gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">Name</label>
+                      <Input
+                        className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        type="text"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">Email</label>
+                      <Input
+                        className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors"
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        type="email"
+                      />
+                    </div>
+                    {!isGoogle && (
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium">New Password</label>
+                        <div className="relative">
+                          <Input
+                            className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors pr-10"
+                            value={profilePassword}
+                            onChange={(e) => setProfilePassword(e.target.value)}
+                            type={showProfilePassword ? "text" : "password"}
+                            placeholder="Leave blank to keep same"
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setShowProfilePassword(!showProfilePassword);
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                          >
+                            {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      className="bg-[#E50914] hover:bg-red-700 text-white transition-colors"
+                      disabled={updateProfileLoading}
+                      onClick={handleUpdateProfile}
+                    >
+                      {updateProfileLoading ? "updating..." : "save changes"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+            <Button onClick={() => setOpenSidebar(true)} className="md:hidden rounded-lg bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-500 p-2 h-8 w-8">
+              <MenuIcon size={18} />
+            </Button>
+          </div>
+        </TooltipProvider>
       </nav>
     </>
   );

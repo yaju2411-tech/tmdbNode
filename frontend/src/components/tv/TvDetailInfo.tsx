@@ -18,140 +18,159 @@ const TvDetailInfo = ({ onClose }: Props) => {
     ?.filter((c: any) => c.known_for_department === "Acting")
     .slice(0, 5);
 
+  const totalEpisodes = tv.seasons?.reduce((acc: number, s: any) => acc + (s.episode_count || 0), 0) || 0;
+
   return (
-    <div className="relative mt-8 rounded-xl overflow-hidden shadow-2xl transition-all duration-500 max-w-7xl mx-auto border dark:border-zinc-800/40 dark:bg-black/60 backdrop-blur-sm">
-      <div className="relative z-10 p-6 md:p-10 text-white">
+    <div className="relative mt-6 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 max-w-7xl mx-auto border border-gray-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md">
+      <div className="p-4 sm:p-8 text-gray-900 dark:text-white">
         {/* Header */}
-        <div className="flex justify-between mb-10 pb-4 border-b border-zinc-800">
-          <h2 className="text-3xl font-bold text-red-600 tracking-wide md:mb-0 border-l-4 border-red-600 pl-3">More Details</h2>
+        <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-200 dark:border-zinc-800">
+          <h2 className="text-xl sm:text-2xl font-black text-[#E50914] tracking-wide border-l-4 border-[#E50914] pl-3">
+            More Details
+          </h2>
           <Button
             onClick={onClose}
             variant="outline"
-            className="text-white rounded-md hover:bg-red-500 transition-colors"
-          ><X/></Button>
+            className="p-2 h-9 w-9 rounded-full hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </Button>
         </div>
 
-        {/* Quick Info Grid / Table */}
-        <div className="backdrop-blur-sm dark:bg-black/40 shadow-xl rounded-xl p-6 mb-10 border dark:border-zinc-800/50 backdrop-blur-md overflow-x-auto scrollbar-hide">
-          <table className="w-full text-center text-sm md:text-base min-w-[600px]">
-            <thead>
-              <tr className="text-black dark:text-zinc-500 text-xs font-semibold tracking-wider">
-                <th className="pb-3 w-1/4 uppercase">Rating</th>
-                <th className="pb-3 w-1/4 uppercase">Total Episodes</th>
-                <th className="pb-3 w-1/4 uppercase">Type</th>
-                <th className="pb-3 w-1/4 uppercase">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="text-black dark:text-white text-2xl font-bold tracking-tight">{tv.vote_average.toFixed(1)} / 10</td>
-                <td className="text-black dark:text-white text-2xl font-bold tracking-tight">{tv.seasons.reduce((acc: any, s: any) => acc + s.episode_count, 0)}</td>
-                <td className="text-black text-2xl font-bold tracking-tight text-teal-400 capitalize">{tv.type || "Show"}</td>
-                <td>
-                  <span className="bg-green-600/90 text-white px-3 py-1 rounded-md text-sm font-bold shadow-sm whitespace-nowrap">
-                    {tv.ststus || "Returning Series"}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {/* Quick Info Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <div className="p-3 sm:p-4 rounded-xl bg-gray-100 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800/80 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-1">
+              Rating
+            </span>
+            <span className="text-lg sm:text-2xl font-black text-emerald-600 dark:text-emerald-500">
+              {tv.vote_average?.toFixed(1)} / 10
+            </span>
+          </div>
 
-        {/* Seasons Detailed Table */}
-        <div className="mb-10">
-          <h3 className="text-xl font-bold text-red-500 dark:text-zinc-200 mb-4 border-l-4 border-red-600 pl-3">Seasons Overview</h3>
-          <div className="shadow-xl overflow-x-auto dark:bg-black/40 rounded-xl border dark:border-zinc-800/50 backdrop-blur-md">
-            <table className="w-full text-left text-md text-sm">
-              <thead>
-                <tr className="font-bold bg-gray-200 dark:bg-white/5 border-b border-zinc-700/50 text-blue-500 dark:text-zinc-400">
-                  <th className="px-6 py-4 font-medium w-24">Poster</th>
-                  <th className="px-6 py-4 font-medium">Season Details</th>
-                  <th className="px-6 py-4 font-medium w-28 text-center">Episodes</th>
-                  <th className="px-6 py-4 font-medium w-32 text-center">Air Date</th>
-                  <th className="px-6 py-4 font-medium w-24 text-center">Rating</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50">
-                {tv.seasons.map((season: any, index: number) => (
-                  <tr key={`${season.id}-${index}`} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      {season.poster_path ? (
-                        <div className="shadow-lg rounded shrink-0 w-16 h-24 overflow-hidden border border-zinc-700">
-                          <img
-                            src={`https://image.tmdb.org/t/p/w200${season.poster_path}`}
-                            alt={season.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-24 bg-zinc-800 rounded border border-zinc-700 flex items-center justify-center">
-                          <span className="text-xs text-zinc-500">No Image</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-base text-black/60 dark:text-zinc-100">{season.name}</div>
-                      <div className="text-sm font-bold text-base text-black/60 dark:text-zinc-100">
-                        {season.overview || <span className="italic opacity-50">No description available for this season.</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="bg-teal-500/50 text-white dark:bg-teal-500/20 dark:text-teal-300 font-bold px-3 py-1.5 rounded-md text-center max-w-max mx-auto shadow-sm">
-                        {season.episode_count}
-                      </div>
-                    </td>
-                    <td className="font-bold text-black/60 dark:text-zinc-100">
-                      {season.air_date ? new Date(season.air_date).toLocaleDateString() : "TBA"}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="bg-teal-500/20 dark:bg-zinc-800/80 text-green-500 font-semibold px-2 py-1 inline-flex items-center justify-center rounded border dark:border-zinc-700 w-10 text-center shadow-sm">
-                        {season.vote_average ? season.vote_average.toFixed(1) : "-"}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-3 sm:p-4 rounded-xl bg-gray-100 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800/80 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-1">
+              Total Episodes
+            </span>
+            <span className="text-lg sm:text-2xl font-black text-gray-900 dark:text-white">
+              {totalEpisodes}
+            </span>
+          </div>
+
+          <div className="p-3 sm:p-4 rounded-xl bg-gray-100 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800/80 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-1">
+              Type
+            </span>
+            <span className="text-sm sm:text-lg font-bold text-emerald-600 dark:text-teal-400 capitalize">
+              {tv.type || "Show"}
+            </span>
+          </div>
+
+          <div className="p-3 sm:p-4 rounded-xl bg-gray-100 dark:bg-zinc-900/80 border border-gray-200 dark:border-zinc-800/80 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-1">
+              Status
+            </span>
+            <span className="bg-emerald-600 text-white px-2.5 py-0.5 rounded-md text-xs font-bold shadow-sm">
+              {(tv as any).ststus || (tv as any).status || "Returning Series"}
+            </span>
           </div>
         </div>
 
-        {/* Top Cast List Table */}
-        <div>
-          <h3 className="text-xl font-semibold text-red-500 dark:text-zinc-200 mb-4 border-l-4 border-red-600 pl-3">Top Cast</h3>
-          <div className="shadow-xl overflow-x-auto dark:bg-black/40 rounded-xl border dark:border-zinc-800/50 backdrop-blur-md">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead>
-                <tr className="bg-white/5 border-b border-zinc-700/50 text-blue-500 font-bold dark:text-zinc-400">
-                  <th className="px-6 py-4 font-medium">Actor</th>
-                  <th className="px-6 py-4 font-medium">Name</th>
-                  <th className="px-6 py-4 font-medium">Role</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/50">
-                {topActors?.map((actor: any) => (
-                  <tr key={actor.cast_id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <img
-                        src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                        alt={actor.name}
-                        onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/150"; }}
-                        className="w-12 h-12 rounded-full object-cover shadow-md border dark:border-zinc-700"
-                      />
-                    </td>
-                    <td className="px-6 py-4 font-bold text-black/60 dark:text-zinc-100">
-                      {actor.name}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-teal-400 font-medium">as</span> <span className="font-semibold text-black/60 dark:text-zinc-200">{actor.character || "Main Role"}</span>
-                    </td>
+        {/* Seasons Overview */}
+        {tv.seasons && tv.seasons.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-base sm:text-lg font-bold text-[#E50914] mb-3 border-l-4 border-[#E50914] pl-3">
+              Seasons Overview
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/50 scrollbar-none">
+              <table className="w-full text-left text-xs sm:text-sm whitespace-nowrap">
+                <thead>
+                  <tr className="bg-gray-200/80 dark:bg-zinc-800/80 text-gray-700 dark:text-zinc-400 font-bold border-b border-gray-300 dark:border-zinc-800">
+                    <th className="px-4 py-3 w-20">Poster</th>
+                    <th className="px-4 py-3">Season Details</th>
+                    <th className="px-4 py-3 text-center">Episodes</th>
+                    <th className="px-4 py-3 text-center">Air Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
+                  {tv.seasons.map((season: any, index: number) => (
+                    <tr key={`${season.id}-${index}`} className="hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <img
+                          src={
+                            season.poster_path
+                              ? `https://image.tmdb.org/t/p/w200${season.poster_path}`
+                              : "https://placehold.co/150x225?text=No+Poster"
+                          }
+                          alt={season.name}
+                          className="w-12 h-16 rounded-md object-cover shadow-sm border border-gray-300 dark:border-zinc-700"
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-gray-900 dark:text-zinc-100">{season.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-zinc-400 line-clamp-1 max-w-xs sm:max-w-md">
+                          {season.overview || "No description available for this season."}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-md text-xs">
+                          {season.episode_count || 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-zinc-300">
+                        {season.air_date ? new Date(season.air_date).toLocaleDateString() : "TBA"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Top Cast List */}
+        {topActors && topActors.length > 0 && (
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-[#E50914] mb-3 border-l-4 border-[#E50914] pl-3">
+              Top Cast
+            </h3>
+            <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900/50 scrollbar-none">
+              <table className="w-full text-left text-xs sm:text-sm whitespace-nowrap">
+                <thead>
+                  <tr className="bg-gray-200/80 dark:bg-zinc-800/80 text-gray-700 dark:text-zinc-400 font-bold border-b border-gray-300 dark:border-zinc-800">
+                    <th className="px-4 py-3">Actor</th>
+                    <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-zinc-800">
+                  {topActors.map((actor: any) => (
+                    <tr key={actor.cast_id || actor.id} className="hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <img
+                          src={
+                            actor.profile_path
+                              ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+                              : "https://placehold.co/150x150?text=No+Photo"
+                          }
+                          alt={actor.name}
+                          className="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-300 dark:border-zinc-700"
+                        />
+                      </td>
+                      <td className="px-4 py-3 font-bold text-gray-900 dark:text-zinc-100">
+                        {actor.name}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-zinc-300">
+                        {actor.character || "Main Role"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
-
     </div>
   );
 };

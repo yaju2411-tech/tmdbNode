@@ -13,6 +13,10 @@ export const resendResetOTP = async (req, res, next) => {
     if (!email) {
       return next(new AppError("Email is required.", 400));
     }
+    const user = await User.findOne({ email });
+    if (!user || user.provider !== "local") {
+      return next(new AppError("Password reset is not available for this account.", 400));
+    }
     const reset = await PasswordReset.findOne({ email });
     if (!reset) {
       return next(new AppError("Password reset session expired.", 404));

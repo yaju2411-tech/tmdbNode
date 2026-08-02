@@ -31,27 +31,30 @@ const MovieRow = ({ genre }: any) => {
             {getGenreIcon(genre.name)}
             {genre.name}
           </h2>
-          {/* Arrows */}
+          {/* Arrows (Hidden on mobile touch screens, visible on desktop hover) */}
           <button
             onClick={() => scroll("left")}
-            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white dark:bg-white/50 dark:text-black p-1.5 sm:p-2 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white dark:bg-white/70 dark:text-black p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md"
+            aria-label="Scroll Left"
           >
-            <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
+            <ChevronLeft size={22} />
           </button>
           <button
             onClick={() => scroll("right")}
-            className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white dark:bg-white/50 dark:text-black p-1.5 sm:p-2 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+            className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/60 text-white dark:bg-white/70 dark:text-black p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-md"
+            aria-label="Scroll Right"
           >
-            <ChevronRight size={20} className="sm:w-6 sm:h-6" />
+            <ChevronRight size={22} />
           </button>
+
           {/* Row */}
           <div
             ref={scrollRef}
-            className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide px-4 sm:px-6 scroll-smooth snap-x snap-mandatory"
+            className="flex gap-3 sm:gap-6 overflow-x-auto scrollbar-none [::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-4 sm:px-6 scroll-smooth snap-x snap-mandatory"
           >
             {isLoading ? 
               Array.from({length:10}).map((_,index)=>(
-                <div key={index} className="w-[130px] sm:w-[160px] md:w-[190px] lg:w-[212px] shrink-0 snap-start flex flex-col gap-2">
+                <div key={index} className="w-[140px] sm:w-[170px] md:w-[190px] lg:w-[212px] shrink-0 snap-start flex flex-col gap-2">
                   <Skeleton className="aspect-[2/3] w-full rounded-2xl bg-zinc-200 dark:bg-zinc-800" />
                    <div className="flex flex-col gap-2 px-1">
                     <Skeleton className="h-4 w-3/4" />
@@ -63,10 +66,10 @@ const MovieRow = ({ genre }: any) => {
               safeMovies?.slice(0, 10).map((tv: any) => (
                 <div
                   key={tv.id}
-                  className="w-[130px] sm:w-[160px] md:w-[190px] lg:w-[212px] shrink-0 snap-start group cursor-pointer flex flex-col gap-2 transition-transform duration-300 hover:scale-105"
+                  className="w-[140px] sm:w-[170px] md:w-[190px] lg:w-[212px] shrink-0 snap-start group cursor-pointer flex flex-col gap-2 transition-colors duration-200"
                   onClick={() => navigate(`/app/tvDetail/${tv.id}`)}
                 >
-                  <div className="relative overflow-hidden rounded-2xl aspect-[2/3] bg-zinc-900 shadow-md transition-shadow group-hover:shadow-[0_0_15px_rgba(229,9,20,0.3)]">
+                  <div className="relative overflow-hidden rounded-2xl aspect-[2/3] bg-zinc-900 shadow-md transition-all group-hover:border group-hover:border-[#E50914] group-hover:shadow-[0_0_15px_rgba(229,9,20,0.3)]">
                     <img
                       src={tv.poster_path ? `https://image.tmdb.org/t/p/w500${tv.poster_path}` : `https://placehold.co/300x450?text=No+Image`}
                       alt={tv.title}

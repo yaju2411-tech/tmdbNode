@@ -20,6 +20,11 @@ export const forgotPassword = async (req, res, next) => {
     if (!user) {
       return next(new AppError("User not found.", 404));
     }
+    if (user.provider !== "local") {
+      return next(
+        new AppError("This account uses Google Sign-In. Password reset is not available for Google accounts.", 400)
+      );
+    }
     // Remove previous reset request
     await PasswordReset.deleteOne({ email });
     const otp = generateOTP();

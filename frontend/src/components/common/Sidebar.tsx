@@ -75,6 +75,24 @@ export const AppSidebar = ({
       setIsDark(true);
     }
   };
+  const sidebarRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        !collapsed &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setCollapsed(true);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [collapsed, setCollapsed]);
+
   return (
     <TooltipProvider>
       {
@@ -82,6 +100,7 @@ export const AppSidebar = ({
         onClick={() => setOpenSidebar(false)}/>
       }
       <aside
+        ref={sidebarRef}
         className={`
           fixed md:relative top-0 left-0 z-50 h-screen md:h-auto
           flex flex-col border-r border-gray-200 dark:border-zinc-800
@@ -91,31 +110,6 @@ export const AppSidebar = ({
           w-60 ${openSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        {/* HEADER */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800">
-          <h2 className={`font-bold text-lg ${collapsed ? "md:hidden" : ""}`}>Menu</h2>
-          <button
-            onClick={() => {
-              if (window.innerWidth >= 768) {
-                setCollapsed(!collapsed);
-              } else {
-                setOpenSidebar(false);
-              }
-            }}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-900 transition">
-            {
-              window.innerWidth >= 768 ? (
-                collapsed ? (
-                  <ChevronRight size={18} />
-                ) : (
-                  <ChevronLeft size={18} />
-                )
-              ) : (
-                <X size={18} />
-              )
-            }
-          </button>
-        </div>
         {/* MENU */}
         <div className="flex-1 p-3 space-y-2">
           {menuItems.map((item) => (

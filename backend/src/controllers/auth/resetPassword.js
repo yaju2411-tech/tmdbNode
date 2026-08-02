@@ -18,6 +18,10 @@ export const resetPassword = async (req, res, next) => {
     if (password.length < 8) {
       return next(new AppError("Password must be at least 8 characters.",400));
     }
+    const user = await User.findOne({ email });
+    if (!user || user.provider !== "local") {
+      return next(new AppError("This account uses Google Sign-In and cannot change password.", 400));
+    }
     const reset = await PasswordReset.findOne({ email });
     if (!reset) {
       return next(new AppError("Password reset session expired.",404));
