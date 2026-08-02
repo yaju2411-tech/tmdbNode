@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import axios from "axios";
 import uploadToCloudinary from "../utils/uploadToCloudinary.js";
+import { checkIsAdminEmail } from "../utils/adminCheck.js";
 
 passport.use(
     new GoogleStrategy(
@@ -31,7 +32,7 @@ passport.use(
                         public_id: uploaded.public_id,
                     };
                 }
-                const isAdmin = email.toLowerCase() === "yaju2411@gmail.com";
+                const isAdmin = checkIsAdminEmail(email);
                 if (!user) {
                     user = await User.create({
                         name: profile.displayName,

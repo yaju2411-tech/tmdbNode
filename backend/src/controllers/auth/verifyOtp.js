@@ -4,6 +4,7 @@ import User from "../../models/User.js";
 import PendingUser from "../../models/PendingUser.js";
 
 import AppError from "../../utils/appError.js";
+import { checkIsAdminEmail } from "../../utils/adminCheck.js";
 
 export const verifyOTP = async (req, res, next) => {
   try {
@@ -63,7 +64,7 @@ export const verifyOTP = async (req, res, next) => {
       );
     }
 
-    const isAdmin = pendingUser.email.toLowerCase() === "yaju2411@gmail.com";
+    const isAdmin = checkIsAdminEmail(pendingUser.email);
 
     // Create verified user
     await User.create({

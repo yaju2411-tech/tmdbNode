@@ -6,6 +6,7 @@ import User from "../../models/User.js";
 import AppError from "../../utils/appError.js";
 import generateToken from "../../utils/generateToken.js";
 import cookieOptions from "../../utils/cookieOption.js";
+import { checkIsAdminEmail } from "../../utils/adminCheck.js";
 
 export const login = async (req, res, next) => {
   try {
@@ -38,6 +39,12 @@ export const login = async (req, res, next) => {
 
     if (!matched) {
         return next(new AppError("Invalid email or password.",401));
+    }
+
+    // Auto-promote admin emails to admin role
+    if (checkIsAdminEmail(user.email) && user.role !== "admin") {
+        user.role = "admin";
+        await user.save();
     }
 
     // Generate JWT

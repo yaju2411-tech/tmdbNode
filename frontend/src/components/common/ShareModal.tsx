@@ -31,9 +31,8 @@ interface Props {
 export const ShareModal = ({open,onOpenChange,id,title,type,}: Props) => {
   const [mode, setMode] = useState<"url" | "qr">("url");
   const qrRef = useRef<HTMLDivElement | null>(null);
-  const shareUrl = window.location.hostname === "localhost"
-    ? `https://tmdb-rho-lemon.vercel.app/app/${type}Detail/${id}`
-    : `https://tmdb-rho-lemon.vercel.app/app/${type}Detail/${id}`;
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://tmdb-node.vercel.app";
+  const shareUrl = `${baseUrl}/app/${type}Detail/${id}`;
   const handleCopy = async () => {
     await navigator.clipboard.writeText(shareUrl);
     toast.success("URL Copied");
