@@ -104,6 +104,13 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
       <SubscriptionModal isOpen={isSubModalOpen} onClose={() => setIsSubModalOpen(false)} />
       <nav className="w-full flex px-3 sm:px-6 lg:px-8 py-2.5 sm:py-4 bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-900 text-gray-900 dark:text-white items-center justify-between sticky top-0 z-50 transition-all duration-500">
         <div className="flex items-center flex-1 min-w-0">
+          <button
+            onClick={() => setOpenSidebar((prev: boolean) => !prev)}
+            className="p-1.5 mr-2 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900 rounded-xl transition-all md:hidden shrink-0 cursor-pointer"
+            aria-label="Toggle Sidebar"
+          >
+            <MenuIcon size={22} />
+          </button>
           <Link to="/" className="flex items-center shrink-0" onClick={() => setOpenSidebar(false)}>
             <h1 className="text-xl sm:text-3xl font-extrabold text-[#E50914] tracking-wider hover:text-red-500 transition-colors">
               TMDB

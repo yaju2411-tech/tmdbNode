@@ -113,6 +113,26 @@ export const AppSidebar = ({
           w-60 ${openSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
+        {/* TOP HEADER / COLLAPSE TOGGLE */}
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-zinc-800 shrink-0">
+          <span className={`font-extrabold text-sm text-[#E50914] ${collapsed ? "md:hidden" : ""}`}>
+            Menu & Filters
+          </span>
+          <button
+            onClick={() => setCollapsed((prev) => !prev)}
+            className="hidden md:flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all ml-auto cursor-pointer"
+            title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
+          <button
+            onClick={() => setOpenSidebar(false)}
+            className="md:hidden flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all ml-auto cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
         {/* MENU */}
         <div className="flex-1 p-3 space-y-2">
           {menuItems.map((item) => (
@@ -120,6 +140,7 @@ export const AppSidebar = ({
               <TooltipTrigger asChild>
                 <Link
                   to={item.link}
+                  onClick={() => setOpenSidebar(false)}
                   className={`flex items-center gap-3 px-3 py-3 rounded-xl text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white transition-all ${collapsed ? "md:justify-center md:px-0" : ""}`}>
                   <item.icon size={22} className="shrink-0" />
                   <span className={`text-sm font-medium ${collapsed ? "md:hidden" : ""}`}>
@@ -158,77 +179,104 @@ export const AppSidebar = ({
           )}
 
           {/* FILTER SECTION */}
-          <div className="pt-6">
-            <h3 className={`text-md uppercase text-red-500 mb-2 px-2 ${collapsed ? "md:hidden" : ""}`}>
+          <div className="pt-4 border-t border-gray-200 dark:border-zinc-800">
+            <h3 className={`text-xs font-bold uppercase text-red-500 mb-2 px-2 tracking-wider ${collapsed ? "md:hidden" : ""}`}>
               Filters
             </h3>
             {/* BY RATING */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className={`space-y-2 ${collapsed ? "md:hidden" : ""}`}>
-                    <p className="text-xs text-zinc-500 px-2">
-                        Rating
-                    </p>
-                    <select
+                <div className="space-y-1">
+                  {collapsed ? (
+                    <button
+                      onClick={() => setCollapsed(false)}
+                      className="hidden md:flex items-center justify-center w-full py-3 rounded-xl text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all cursor-pointer"
+                      title="Rating Filter"
+                    >
+                      <Star size={22} className="shrink-0 text-amber-500" />
+                    </button>
+                  ) : (
+                    <div className="space-y-1 px-2">
+                      <p className="text-xs font-semibold text-zinc-500 flex items-center gap-1.5">
+                        <Star size={14} className="text-amber-500" /> Rating
+                      </p>
+                      <select
                         value={filters.rating}
                         onChange={(e) =>
-                        setFilters((prev: any) => ({
+                          setFilters((prev: any) => ({
                             ...prev,
                             rating: Number(e.target.value),
-                        }))
+                          }))
                         }
-                        className="w-full rounded-lg dark:bg-zinc-900 border dark:border-zinc-800 px-3 py-2 text-sm">
+                        className="w-full rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 px-3 py-2 text-xs font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                      >
                         <option value={0}>All Ratings</option>
-                        {[1,2,3,4,5,6,7,8,9,10].map((num) => (
-                        <option key={num} value={num}>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                          <option key={num} value={num}>
                             {num}+ Rating
-                        </option>
+                          </option>
                         ))}
-                    </select>
-                </div>              
-                </TooltipTrigger>
-              {collapsed && (
-                <TooltipContent side="right" className="hidden md:block text-xs text-zinc-500 px-2">
-                  Top Rated
-                </TooltipContent>
-              )}
-            </Tooltip>
-            {/* BY COUNTRY */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-            <div className={`space-y-2 mt-4 ${collapsed ? "md:hidden" : ""}`}>
-                <p className="text-xs text-zinc-500 px-2">
-                    Country
-                </p>
-                <select
-                    value={filters.country}
-                    onChange={(e) =>
-                    setFilters((prev: any) => ({
-                        ...prev,
-                        country: e.target.value,
-                    }))
-                    }
-                    className="w-full rounded-lg dark:bg-zinc-900 border dark:border-zinc-800 px-3 py-2 text-sm">
-                    <option value="">All Countries</option>
-                    <option value="US">USA</option>
-                    <option value="IN">India</option>
-                    <option value="JP">Japan</option>
-                    <option value="KR">Korea</option>
-                    <option value="GB">UK</option>
-                </select>
-            </div>
+                      </select>
+                    </div>
+                  )}
+                </div>
               </TooltipTrigger>
               {collapsed && (
                 <TooltipContent side="right" className="hidden md:block">
-                  By Country
+                  Rating Filters
+                </TooltipContent>
+              )}
+            </Tooltip>
+
+            {/* BY COUNTRY */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="space-y-1 mt-3">
+                  {collapsed ? (
+                    <button
+                      onClick={() => setCollapsed(false)}
+                      className="hidden md:flex items-center justify-center w-full py-3 rounded-xl text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all cursor-pointer"
+                      title="Country Filter"
+                    >
+                      <Globe size={22} className="shrink-0 text-blue-500" />
+                    </button>
+                  ) : (
+                    <div className="space-y-1 px-2">
+                      <p className="text-xs font-semibold text-zinc-500 flex items-center gap-1.5">
+                        <Globe size={14} className="text-blue-500" /> Country
+                      </p>
+                      <select
+                        value={filters.country}
+                        onChange={(e) =>
+                          setFilters((prev: any) => ({
+                            ...prev,
+                            country: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 px-3 py-2 text-xs font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-red-600 transition-all"
+                      >
+                        <option value="">All Countries</option>
+                        <option value="US">USA</option>
+                        <option value="IN">India</option>
+                        <option value="JP">Japan</option>
+                        <option value="KR">Korea</option>
+                        <option value="GB">UK</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right" className="hidden md:block">
+                  Country Filters
                 </TooltipContent>
               )}
             </Tooltip>
           </div>
           
           {/* SETTINGS SECTION (Desktop Only) */}
-          <div className="pt-6 hidden md:block">
-            <h3 className={`text-md uppercase text-red-500 mb-2 px-2 ${collapsed ? "md:hidden" : ""}`}>
+          <div className="pt-4 border-t border-gray-200 dark:border-zinc-800 hidden md:block">
+            <h3 className={`text-xs font-bold uppercase text-red-500 mb-2 px-2 tracking-wider ${collapsed ? "md:hidden" : ""}`}>
               Settings
             </h3>
             <div className="space-y-1 mt-2">
