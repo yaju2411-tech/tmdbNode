@@ -54,47 +54,30 @@ export const GenreList = ({ type, selectedGenre, onClose }: Props) => {
           ref={scrollRef}
           className="flex gap-2 sm:gap-2.5 overflow-x-auto scrollbar-none [::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] px-2 sm:px-6 py-2 sm:py-2.5 scroll-smooth w-full items-center"
         >
-          {/* All Genres Reset Button */}
-          <button
-            onClick={() => {
-              onClose(null);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-              !selectedGenre
-                ? "bg-[#E50914] text-white shadow-md shadow-red-600/30"
-                : "bg-gray-100 dark:bg-zinc-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
-            }`}
-          >
-            <Layers size={14} />
-            <span>All</span>
-          </button>
-
           {isLoading
             ? Array.from({ length: 12 }).map((_, index) => (
-                <Skeleton key={index} className="h-8 w-24 rounded-full bg-gray-200 dark:bg-zinc-800 flex-none" />
-              ))
+              <Skeleton key={index} className="h-8 w-24 rounded-full bg-gray-200 dark:bg-zinc-800 flex-none" />
+            ))
             : data?.map((genre: any) => {
-                const isSelected = selectedGenre === genre.id;
-                return (
-                  <button
-                    key={genre.id}
-                    onClick={() => {
-                      onClose(genre.id);
-                      document.getElementById(`genre-${genre.id}`)?.scrollIntoView({
-                        behavior: "smooth",
-                      });
-                    }}
-                    className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-[#E50914] text-white shadow-md shadow-red-600/30"
-                        : "bg-gray-100 dark:bg-zinc-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
+              const isSelected = selectedGenre === genre.id;
+              return (
+                <button
+                  key={genre.id}
+                  onClick={() => {
+                    onClose(genre.id);
+                    document.getElementById(`genre-${genre.id}`)?.scrollIntoView({
+                      behavior: "smooth",
+                    });
+                  }}
+                  className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${isSelected
+                    ? "bg-[#E50914] text-white shadow-md shadow-red-600/30"
+                    : "bg-gray-100 dark:bg-zinc-800/90 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-zinc-700"
                     }`}
-                  >
-                    {genre.name}
-                  </button>
-                );
-              })}
+                >
+                  {genre.name}
+                </button>
+              );
+            })}
         </div>
 
         <button

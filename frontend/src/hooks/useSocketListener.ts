@@ -6,6 +6,10 @@ export const useSocketListener = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
     // 1. Subscription & Payment Events
     const handleSubscriptionOrPayment = () => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
@@ -57,6 +61,9 @@ export const useSocketListener = () => {
     socket.on("subscription_updated", handleSubscriptionOrPayment);
     socket.on("payment_success", handleSubscriptionOrPayment);
     socket.on("purchase_created", handleSubscriptionOrPayment);
+    socket.on("purchase_updated", handleSubscriptionOrPayment);
+    socket.on("purchase_deleted", handleSubscriptionOrPayment);
+    socket.on("payment-status-updated", handleSubscriptionOrPayment);
     socket.on("ticket_created", handleTicket);
     socket.on("ticket_updated", handleTicket);
     socket.on("user_updated", handleUser);
@@ -67,6 +74,9 @@ export const useSocketListener = () => {
       socket.off("subscription_updated", handleSubscriptionOrPayment);
       socket.off("payment_success", handleSubscriptionOrPayment);
       socket.off("purchase_created", handleSubscriptionOrPayment);
+      socket.off("purchase_updated", handleSubscriptionOrPayment);
+      socket.off("purchase_deleted", handleSubscriptionOrPayment);
+      socket.off("payment-status-updated", handleSubscriptionOrPayment);
       socket.off("ticket_created", handleTicket);
       socket.off("ticket_updated", handleTicket);
       socket.off("user_updated", handleUser);

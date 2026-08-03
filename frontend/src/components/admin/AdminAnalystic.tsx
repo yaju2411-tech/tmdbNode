@@ -4,8 +4,12 @@ import React, { useState } from "react";
 import { FaRupeeSign } from "react-icons/fa";
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Area, AreaChart, Cell } from "recharts";
 import { Button } from "../ui/button";
+import useSocketListener from "../../hooks/useSocketListener";
 
 export const AdminAnalytics = ({ setTab }: { setTab: (tab: any) => void }) => {
+  // Real-time socket listener for automatic query invalidations
+  useSocketListener();
+
   const [filters, setFilters] = useState({
     from: "",
     to: "",

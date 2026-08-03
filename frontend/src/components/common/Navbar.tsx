@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import useSignUpHook from "../../hooks/useSignUpHook";
 import { useRole } from "../../hooks/useRole";
+import useSocketListener from "../../hooks/useSocketListener";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
@@ -20,6 +21,9 @@ interface Props {
 }
 
 const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
+  // Real-time socket listener for user subscription & status updates
+  useSocketListener();
+
   const fileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { userData, logout, updateProfile, provider, updateProfileLoading, isLoading } = useSignUpHook();

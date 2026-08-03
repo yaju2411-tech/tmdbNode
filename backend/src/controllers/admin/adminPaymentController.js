@@ -278,7 +278,9 @@ export const resetPayment = async (req, res, next) => {
         await ticket.save();
 
         broadcastEvent("subscription_updated", { userId: user._id, subscription: user.subscription });
+        broadcastEvent("purchase_deleted", { userId: user._id });
         broadcastEvent("ticket_updated", { ticket });
+        broadcastEvent("stats_updated", {});
 
         return res.json({
             success: true,

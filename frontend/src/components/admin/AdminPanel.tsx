@@ -147,6 +147,21 @@ export const AdminPanel = () => {
 
           {/* Desktop User Dropdown & Notify Bell */}
           <div className="hidden md:flex items-center gap-4 me-3">
+            {/* Notification Bell (at right side of avatar on desktop) */}
+            <button
+              onClick={() => setTab("helpNotify")}
+              className="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+              title={`${openTicketsCount} open tickets`}
+            >
+              <Bell size={22} />
+              {openTicketsCount > 0 && (
+                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-zinc-950"></span>
+                </span>
+              )}
+            </button>
+
             {adminProfile && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -177,21 +192,6 @@ export const AdminPanel = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-
-            {/* Notification Bell (at right side of avatar on desktop) */}
-            <button
-              onClick={() => setTab("helpNotify")}
-              className="relative p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-              title={`${openTicketsCount} open tickets`}
-            >
-              <Bell size={22} />
-              {openTicketsCount > 0 && (
-                <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white dark:border-zinc-950"></span>
-                </span>
-              )}
-            </button>
           </div>
         </div>
 

@@ -1,4 +1,9 @@
 import User from "../../models/User.js";
+import Purchase from "../../models/Purchase.js";
+import Receipt from "../../models/Receipt.js";
+import Watchlist from "../../models/Watchlist.js";
+import Notification from "../../models/Notification.js";
+import PaymentReport from "../../models/PaymentReport.js";
 import AppError from "../../utils/appError.js";
 import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
@@ -163,14 +168,23 @@ export const deleteUserByAdmin = async (req, res, next) => {
             }
         }
 
+        // Clean up all associated subscription, purchase, receipt, watchlist, notification, and payment report data
+        await Purchase.deleteMany({ user: id });
+        await Receipt.deleteMany({ user: id });
+        await Watchlist.deleteMany({ user: id });
+        await Notification.deleteMany({ user: id });
+        await PaymentReport.deleteMany({ user: id });
+
         await User.findByIdAndDelete(id);
 
         broadcastEvent("user_updated", { userId: id, deleted: true });
+        broadcastEvent("purchase_deleted", { userId: id });
+        broadcastEvent("subscription_updated", { userId: id });
         broadcastEvent("stats_updated", {});
 
         return res.json({
             success: true,
-            message: "User deleted successfully"
+            message: "User and all associated subscription/purchase data deleted successfully"
         });
     } catch (err) {
         next(err);

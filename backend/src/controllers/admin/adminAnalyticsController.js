@@ -1,6 +1,7 @@
 import Purchase from "../../models/Purchase.js";
 import User from "../../models/User.js";
 import AppError from "../../utils/appError.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 // Fetch admin statistics and dynamic calculations
 export const getStats = async (req, res, next) => {
@@ -106,6 +107,10 @@ export const updateUserSubscription = async (req, res, next) => {
         };
 
         await user.save();
+
+        broadcastEvent("subscription_updated", { userId, subscription: user.subscription });
+        broadcastEvent("user_updated", { userId });
+        broadcastEvent("stats_updated", {});
 
         return res.json({
             success: true,

@@ -1,6 +1,7 @@
 import razorpay from "../../config/razorpay.js";
 import AppError from "../../utils/appError.js";
 import Purchase from "../../models/Purchase.js";
+import { broadcastEvent } from "../../config/socket.js";
 
 export const createOrder = async (req, res, next) => {
     try {
@@ -31,7 +32,7 @@ export const createOrder = async (req, res, next) => {
         });
 
         // Save pending purchase / subscription order
-        await Purchase.create({
+        const newPurchase = await Purchase.create({
             user: req.user._id,
             contentId: Number(contentId) || 0,
             title: planTitle,
@@ -42,6 +43,9 @@ export const createOrder = async (req, res, next) => {
             razorpayOrderId: order.id,
             status: "pending"
         });
+
+        broadcastEvent("purchase_created", { purchase: newPurchase });
+        broadcastEvent("stats_updated", {});
 
         return res.status(201).json({
             success: true,
