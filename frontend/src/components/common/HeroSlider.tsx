@@ -157,15 +157,6 @@ export const HeroSlider = ({ type }: Props) => {
         )}
       </div>
 
-      {/* Central Pause Indicator overlay (desktop only) */}
-      {showTrailer && activeTrailerKey && (
-        <div className="hidden sm:flex absolute inset-0 z-20 items-center justify-center pointer-events-none">
-          <div className="p-3.5 rounded-2xl bg-black/40 backdrop-blur-md text-white border border-white/20 shadow-2xl">
-            <div className="text-2xl font-black tracking-widest leading-none">||</div>
-          </div>
-        </div>
-      )}
-
       {/* Pure Dark Vignette Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/60 z-10 pointer-events-none" />
 
@@ -237,11 +228,10 @@ export const HeroSlider = ({ type }: Props) => {
               setActiveIndex(idx);
               setShowTrailer(true);
             }}
-            className={`transition-all rounded-full cursor-pointer ${
-              activeIndex === idx
+            className={`transition-all rounded-full cursor-pointer ${activeIndex === idx
                 ? "w-5 sm:w-6 h-1.5 sm:h-2 bg-[#E50914]"
                 : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/50 hover:bg-white"
-            }`}
+              }`}
             aria-label={`Go to slide ${idx + 1}`}
           />
         ))}

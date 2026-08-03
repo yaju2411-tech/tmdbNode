@@ -405,15 +405,6 @@ const HomePage = () => {
             )}
           </div>
 
-          {/* Central Pause Indicator overlay matching Image 2 */}
-          {showTrailer && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
-              <div className="p-3 sm:p-4 rounded-2xl bg-black/40 backdrop-blur-md text-white border border-white/20 shadow-2xl">
-                <div className="text-2xl sm:text-3xl font-black tracking-widest leading-none">||</div>
-              </div>
-            </div>
-          )}
-
           <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-black/70 dark:from-[#141414] dark:via-[#141414]/60 dark:to-black/80 z-10" />
 
           {/* Player Controls */}
@@ -626,7 +617,7 @@ const HomePage = () => {
           <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-red-600/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -666,60 +657,60 @@ const HomePage = () => {
             >
               {isLoadingMovies || topMovies.length === 0
                 ? Array.from({ length: 8 }).map((_, idx) => (
-                    <div key={idx} className="flex-none w-[170px] sm:w-[200px] md:w-[230px]">
-                      <Skeleton className="w-full aspect-[2/3] rounded-2xl bg-gray-200 dark:bg-zinc-800/80 border border-gray-300 dark:border-zinc-800" />
-                    </div>
-                  ))
+                  <div key={idx} className="flex-none w-[170px] sm:w-[200px] md:w-[230px]">
+                    <Skeleton className="w-full aspect-[2/3] rounded-2xl bg-gray-200 dark:bg-zinc-800/80 border border-gray-300 dark:border-zinc-800" />
+                  </div>
+                ))
                 : topMovies.map((movie, index) => (
-                    <div
-                      key={movie.id}
-                      onClick={() => (userData ? navigate(`/app/movieDetail/${movie.id}`) : navigate("/loginPage"))}
-                      className="flex-none w-[170px] sm:w-[200px] md:w-[230px] group relative rounded-2xl overflow-hidden bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-[#E50914] cursor-pointer shadow-md transition-colors duration-200"
-                    >
-                      {/* Poster Image Container */}
-                      <div className="relative aspect-[2/3] w-full overflow-hidden">
-                        <img
-                          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                          alt={movie.title}
-                          className="w-full h-full object-cover transition-opacity duration-300"
-                          loading="lazy"
-                        />
-                        
-                        {/* Top Rank Badge Number */}
-                        <div className="absolute top-2 left-2 z-10 bg-[#E50914] text-white px-2.5 py-1 rounded-lg font-black text-xs sm:text-sm shadow-md">
-                          #{index + 1}
-                        </div>
+                  <div
+                    key={movie.id}
+                    onClick={() => (userData ? navigate(`/app/movieDetail/${movie.id}`) : navigate("/loginPage"))}
+                    className="flex-none w-[170px] sm:w-[200px] md:w-[230px] group relative rounded-2xl overflow-hidden bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-[#E50914] cursor-pointer shadow-md transition-colors duration-200"
+                  >
+                    {/* Poster Image Container */}
+                    <div className="relative aspect-[2/3] w-full overflow-hidden">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                        alt={movie.title}
+                        className="w-full h-full object-cover transition-opacity duration-300"
+                        loading="lazy"
+                      />
 
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
+                      {/* Top Rank Badge Number */}
+                      <div className="absolute top-2 left-2 z-10 bg-[#E50914] text-white px-2.5 py-1 rounded-lg font-black text-xs sm:text-sm shadow-md">
+                        #{index + 1}
+                      </div>
 
-                        {/* Content Info inside Poster */}
-                        <div className="absolute bottom-0 inset-x-0 p-3.5 flex flex-col justify-end text-white">
-                          <h3 className="font-bold text-sm sm:text-base line-clamp-1 group-hover:text-red-500 transition-colors">
-                            {movie.title}
-                          </h3>
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
 
-                          <div className="flex items-center justify-between mt-1.5 text-xs">
-                            <div className="flex items-center gap-1 text-amber-400 font-semibold">
-                              <Star size={13} className="fill-amber-400" />
-                              <span>{movie.vote_average?.toFixed(1)}</span>
-                            </div>
-                            <span className="text-gray-300 font-medium">
-                              {movie.release_date?.split("-")[0]}
-                            </span>
+                      {/* Content Info inside Poster */}
+                      <div className="absolute bottom-0 inset-x-0 p-3.5 flex flex-col justify-end text-white">
+                        <h3 className="font-bold text-sm sm:text-base line-clamp-1 group-hover:text-red-500 transition-colors">
+                          {movie.title}
+                        </h3>
+
+                        <div className="flex items-center justify-between mt-1.5 text-xs">
+                          <div className="flex items-center gap-1 text-amber-400 font-semibold">
+                            <Star size={13} className="fill-amber-400" />
+                            <span>{movie.vote_average?.toFixed(1)}</span>
                           </div>
-
-                          <Button
-                            size="sm"
-                            className="mt-2.5 w-full bg-[#E50914] hover:bg-red-700 text-white font-bold text-xs rounded-lg py-1.5"
-                          >
-                            <Play size={13} className="mr-1 fill-white" />
-                            Watch Now
-                          </Button>
+                          <span className="text-gray-300 font-medium">
+                            {movie.release_date?.split("-")[0]}
+                          </span>
                         </div>
+
+                        <Button
+                          size="sm"
+                          className="mt-2.5 w-full bg-[#E50914] hover:bg-red-700 text-white font-bold text-xs rounded-lg py-1.5"
+                        >
+                          <Play size={13} className="mr-1 fill-white" />
+                          Watch Now
+                        </Button>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
             </div>
 
           </div>
@@ -732,7 +723,7 @@ const HomePage = () => {
           <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-red-600/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
+
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -772,60 +763,60 @@ const HomePage = () => {
             >
               {isLoadingTv || topTvShows.length === 0
                 ? Array.from({ length: 8 }).map((_, idx) => (
-                    <div key={idx} className="flex-none w-[170px] sm:w-[200px] md:w-[230px]">
-                      <Skeleton className="w-full aspect-[2/3] rounded-2xl bg-gray-200 dark:bg-zinc-800/80 border border-gray-300 dark:border-zinc-800" />
-                    </div>
-                  ))
+                  <div key={idx} className="flex-none w-[170px] sm:w-[200px] md:w-[230px]">
+                    <Skeleton className="w-full aspect-[2/3] rounded-2xl bg-gray-200 dark:bg-zinc-800/80 border border-gray-300 dark:border-zinc-800" />
+                  </div>
+                ))
                 : topTvShows.map((tv, index) => (
-                    <div
-                      key={tv.id}
-                      onClick={() => (userData ? navigate(`/app/tvDetail/${tv.id}`) : navigate("/loginPage"))}
-                      className="flex-none w-[170px] sm:w-[200px] md:w-[230px] group relative rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-[#E50914] cursor-pointer shadow-md transition-colors duration-200"
-                    >
-                      {/* Poster Image Container */}
-                      <div className="relative aspect-[2/3] w-full overflow-hidden">
-                        <img
-                          src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
-                          alt={tv.name}
-                          className="w-full h-full object-cover transition-opacity duration-300"
-                          loading="lazy"
-                        />
+                  <div
+                    key={tv.id}
+                    onClick={() => (userData ? navigate(`/app/tvDetail/${tv.id}`) : navigate("/loginPage"))}
+                    className="flex-none w-[170px] sm:w-[200px] md:w-[230px] group relative rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 hover:border-[#E50914] cursor-pointer shadow-md transition-colors duration-200"
+                  >
+                    {/* Poster Image Container */}
+                    <div className="relative aspect-[2/3] w-full overflow-hidden">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w500${tv.poster_path}`}
+                        alt={tv.name}
+                        className="w-full h-full object-cover transition-opacity duration-300"
+                        loading="lazy"
+                      />
 
-                        {/* Top Rank Badge Number */}
-                        <div className="absolute top-2 left-2 z-10 bg-[#E50914] text-white px-2.5 py-1 rounded-lg font-black text-xs sm:text-sm shadow-md">
-                          #{index + 1}
-                        </div>
+                      {/* Top Rank Badge Number */}
+                      <div className="absolute top-2 left-2 z-10 bg-[#E50914] text-white px-2.5 py-1 rounded-lg font-black text-xs sm:text-sm shadow-md">
+                        #{index + 1}
+                      </div>
 
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
 
-                        {/* Content Info inside Poster */}
-                        <div className="absolute bottom-0 inset-x-0 p-3.5 flex flex-col justify-end text-white">
-                          <h3 className="font-bold text-sm sm:text-base line-clamp-1 group-hover:text-red-500 transition-colors">
-                            {tv.name}
-                          </h3>
+                      {/* Content Info inside Poster */}
+                      <div className="absolute bottom-0 inset-x-0 p-3.5 flex flex-col justify-end text-white">
+                        <h3 className="font-bold text-sm sm:text-base line-clamp-1 group-hover:text-red-500 transition-colors">
+                          {tv.name}
+                        </h3>
 
-                          <div className="flex items-center justify-between mt-1.5 text-xs">
-                            <div className="flex items-center gap-1 text-amber-400 font-semibold">
-                              <Star size={13} className="fill-amber-400" />
-                              <span>{tv.vote_average?.toFixed(1)}</span>
-                            </div>
-                            <span className="text-gray-300 font-medium">
-                              {tv.first_air_date?.split("-")[0]}
-                            </span>
+                        <div className="flex items-center justify-between mt-1.5 text-xs">
+                          <div className="flex items-center gap-1 text-amber-400 font-semibold">
+                            <Star size={13} className="fill-amber-400" />
+                            <span>{tv.vote_average?.toFixed(1)}</span>
                           </div>
-
-                          <Button
-                            size="sm"
-                            className="mt-2.5 w-full bg-[#E50914] hover:bg-red-700 text-white font-bold text-xs rounded-lg py-1.5"
-                          >
-                            <Play size={13} className="mr-1 fill-white" />
-                            Watch Now
-                          </Button>
+                          <span className="text-gray-300 font-medium">
+                            {tv.first_air_date?.split("-")[0]}
+                          </span>
                         </div>
+
+                        <Button
+                          size="sm"
+                          className="mt-2.5 w-full bg-[#E50914] hover:bg-red-700 text-white font-bold text-xs rounded-lg py-1.5"
+                        >
+                          <Play size={13} className="mr-1 fill-white" />
+                          Watch Now
+                        </Button>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
             </div>
 
           </div>
