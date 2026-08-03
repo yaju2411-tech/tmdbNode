@@ -73,7 +73,6 @@ const statusColors: Record<string, string> = {
 
 const categoryLabels: Record<string, string> = {
   cant_login: "Can't Login",
-  otp_issues: "OTP Issues",
   google_signin: "Google Sign-in",
   payment_deducted: "Payment Failed",
   content_not_showing: "Content Missing",
@@ -254,19 +253,6 @@ export const AdminTickets = () => {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to verify user account");
-    }
-  });
-
-  const resendOtpMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await api.post(`/admin/tickets/${id}/resend-otp`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["adminTickets"] });
-      toast.success("Fresh 6-Digit OTP generated and emailed to user!");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to resend OTP");
     }
   });
 
@@ -628,10 +614,6 @@ export const AdminTickets = () => {
                             <>
                               <DropdownMenuItem onClick={() => verifyUserMutation.mutate(ticket._id)}>
                                 <ShieldCheck className="mr-2 h-4 w-4 text-emerald-500" /> Verify & Unlock User Email
-                              </DropdownMenuItem>
-
-                              <DropdownMenuItem onClick={() => resendOtpMutation.mutate(ticket._id)}>
-                                <Key className="mr-2 h-4 w-4 text-amber-500" /> Resend 6-Digit OTP Email
                               </DropdownMenuItem>
 
                               <DropdownMenuItem onClick={() => sendPasswordResetMutation.mutate(ticket._id)}>

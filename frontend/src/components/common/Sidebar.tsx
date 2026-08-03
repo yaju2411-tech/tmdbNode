@@ -1,13 +1,13 @@
 import {Home,Tv,Film,Heart,Receipt,Settings,ChevronLeft,ChevronRight,Star,Globe, X,HelpCircle, User, SunIcon, MoonIcon, Crown} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {Tooltip,TooltipContent,TooltipProvider,TooltipTrigger} from "../ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { SettingsModal } from "./SettingsModal";
-import { MdFamilyRestroom } from "react-icons/md";
-import { MdOutlineNoAdultContent } from "react-icons/md";
+import { MdFamilyRestroom, MdOutlineNoAdultContent, MdOutlineAdminPanelSettings } from "react-icons/md";
+import { useRole } from "../../hooks/useRole";
 
 interface Props {
   collapsed: boolean;
@@ -57,6 +57,9 @@ export const AppSidebar = ({
   filters,
   setFilters,openSidebar,setOpenSidebar,user
 }: Props) => {
+  const navigate = useNavigate();
+  const { role } = useRole();
+  const isAdmin = role === "admin" || user?.role === "admin";
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDark, setIsDark] = React.useState(true);
   
@@ -131,6 +134,29 @@ export const AppSidebar = ({
               )}
             </Tooltip>
           ))}
+
+          {isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to="/adminPanel"
+                  onClick={() => setOpenSidebar(false)}
+                  className={`flex items-center gap-3 px-3 py-3 rounded-xl text-[#E50914] font-semibold hover:bg-red-50 dark:hover:bg-red-950/30 transition-all ${collapsed ? "md:justify-center md:px-0" : ""}`}
+                >
+                  <MdOutlineAdminPanelSettings size={22} className="shrink-0" />
+                  <span className={`text-sm ${collapsed ? "md:hidden" : ""}`}>
+                    Admin Panel
+                  </span>
+                </Link>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right" className="hidden md:block">
+                  Admin Panel
+                </TooltipContent>
+              )}
+            </Tooltip>
+          )}
+
           {/* FILTER SECTION */}
           <div className="pt-6">
             <h3 className={`text-md uppercase text-red-500 mb-2 px-2 ${collapsed ? "md:hidden" : ""}`}>
@@ -264,6 +290,14 @@ export const AppSidebar = ({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" side="top" sideOffset={10} className="w-64 bg-white dark:bg-zinc-950 text-black dark:text-white border-gray-200 dark:border-zinc-800 space-y-1 z-[110]">
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem className="gap-3 cursor-pointer py-2 focus:bg-gray-100 dark:focus:bg-zinc-800 text-[#E50914] font-semibold" onSelect={() => { setOpenSidebar(false); navigate("/adminPanel"); }}>
+                    <MdOutlineAdminPanelSettings size={18} /> Admin Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-gray-200 dark:bg-zinc-800" />
+                </>
+              )}
               <DropdownMenuItem className="gap-3 cursor-pointer py-2 focus:bg-gray-100 dark:focus:bg-zinc-800" onSelect={() => setIsSettingsOpen(true)}>
                 <User size={16} /> Update Profile
               </DropdownMenuItem>

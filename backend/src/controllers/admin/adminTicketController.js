@@ -262,53 +262,6 @@ export const verifyTicketUser = async (req, res, next) => {
     }
 };
 
-// Resend Fresh OTP from Admin Panel
-export const resendUserOtpFromAdmin = async (req, res, next) => {
-    try {
-        const ticket = await HelpTicket.findById(req.params.id);
-        if (!ticket) return next(new AppError("Ticket not found", 404));
-
-        const otp = generateOTP();
-        const hashedOTP = await bcrypt.hash(otp, 10);
-
-        await PasswordReset.findOneAndUpdate(
-            { email: ticket.email.toLowerCase() },
-            {
-                email: ticket.email.toLowerCase(),
-                otp: hashedOTP,
-                otpExpires: new Date(Date.now() + 5 * 60 * 1000),
-                lastOTPSent: new Date()
-            },
-            { upsert: true, new: true }
-        );
-
-        let emailSent = false;
-        try {
-            await sendOTP(ticket.email, otp);
-            emailSent = true;
-        } catch (mailErr) {
-            console.error("Failed to deliver OTP email:", mailErr.message || mailErr);
-        }
-
-        ticket.status = "in_progress";
-        ticket.adminNote = emailSent
-            ? `Fresh 6-digit OTP sent to ${ticket.email} by admin.`
-            : `OTP generated (${otp}) but email transport failed. Saved on ticket.`;
-        await ticket.save();
-
-        return res.json({
-            success: true,
-            message: emailSent
-                ? `Fresh OTP (${otp}) generated and emailed to ${ticket.email}!`
-                : `Fresh OTP generated (${otp}), but email transport failed. Saved on ticket.`,
-            otp,
-            ticket
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
 // Trigger Password Reset Email from Admin Panel
 export const sendPasswordResetFromAdmin = async (req, res, next) => {
     try {

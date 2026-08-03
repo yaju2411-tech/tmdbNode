@@ -5,7 +5,6 @@ import { toast } from "sonner";
 
 const CATEGORIES = [
   { id: "cant_login", label: "Can't Login to Account" },
-  { id: "otp_issues", label: "OTP Not Received / Expired" },
   { id: "google_signin", label: "Google Sign-in Issue" },
   { id: "payment_deducted", label: "Payment Deducted but VIP Locked" },
   { id: "content_not_showing", label: "VIP Pass Active but Stream Issues" },

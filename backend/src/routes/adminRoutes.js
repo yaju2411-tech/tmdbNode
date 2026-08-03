@@ -4,7 +4,7 @@ import {
     deleteUserByAdmin, forceVerifyUser, getTickets, updateTicketStatus, deleteTicket,
     grantManualAccess, resetPayment, draftEmail, sendEmail, checkRazorpayStatus,
     updateUserSubscription, getSubscriptionAnalytics, verifyTicketUser,
-    resendUserOtpFromAdmin, sendPasswordResetFromAdmin
+    sendPasswordResetFromAdmin
 } from "../controllers/admin/adminController.js";
 import { verifyLivePaymentId, generateAndSendReceipt } from "../controllers/payment/receiptController.js";
 import protect from "../middleware/authMiddlware.js";
@@ -39,7 +39,6 @@ router.post("/generate-receipt", generateAndSendReceipt);
 
 // Account ticket resolution routes
 router.post("/tickets/:id/verify-user", verifyTicketUser);
-router.post("/tickets/:id/resend-otp", resendUserOtpFromAdmin);
 router.post("/tickets/:id/send-password-reset", sendPasswordResetFromAdmin);
 
 // AI Assistant & Email

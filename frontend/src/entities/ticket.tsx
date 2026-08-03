@@ -1,6 +1,5 @@
 export type TicketCategory =
   | "cant_login"
-  | "otp_issues"
   | "google_signin"
   | "payment_deducted"
   | "content_not_showing"

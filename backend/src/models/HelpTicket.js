@@ -19,7 +19,6 @@ const helpTicketSchema = new mongoose.Schema(
       required: true,
       enum: [
         "cant_login",
-        "otp_issues",
         "google_signin",
         "payment_deducted",
         "content_not_showing",

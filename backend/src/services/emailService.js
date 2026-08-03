@@ -148,7 +148,6 @@ export const sendEmailMessage = async ({ to, subject, html, attachments, fromNam
 
 const CATEGORY_LABELS = {
   cant_login: "Can't Login",
-  otp_issues: "OTP Not Received / Expired",
   google_signin: "Google Sign-in Issue",
   payment_deducted: "Payment Deducted but Content Locked",
   content_not_showing: "Purchased Content Not Showing",

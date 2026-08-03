@@ -222,6 +222,18 @@ const HomePage = () => {
 
                       {/* Navigation Options */}
                       <div className="flex flex-col gap-3 w-full">
+                        {role === "admin" && (
+                          <DrawerClose asChild>
+                            <div
+                              className="w-full flex items-center rounded-xl gap-4 px-4 py-3.5 text-sm font-semibold bg-red-500/10 text-[#E50914] hover:bg-[#E50914] hover:text-white dark:hover:bg-[#E50914] dark:hover:text-white transition-colors cursor-pointer"
+                              onClick={() => navigate("/adminPanel")}
+                            >
+                              <MdOutlineAdminPanelSettings size={20} />
+                              <span>Admin Panel</span>
+                            </div>
+                          </DrawerClose>
+                        )}
+
                         <DrawerClose asChild>
                           <div
                             className="w-full flex items-center rounded-xl gap-4 px-4 py-3.5 text-sm font-medium bg-gray-100 dark:bg-zinc-900 hover:bg-[#E50914] hover:text-white dark:hover:bg-[#E50914] dark:hover:text-white transition-colors cursor-pointer"
@@ -306,6 +318,18 @@ const HomePage = () => {
                               {isDark ? "Light" : "Dark"}
                             </Button>
                           </div>
+
+                          {role === "admin" && (
+                            <DrawerClose asChild>
+                              <Button
+                                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 mt-1"
+                                onClick={() => navigate("/adminPanel")}
+                              >
+                                <MdOutlineAdminPanelSettings size={16} />
+                                Admin Panel
+                              </Button>
+                            </DrawerClose>
+                          )}
 
                           {/* Sign Out inside Mobile Profile */}
                           <DrawerClose asChild>
