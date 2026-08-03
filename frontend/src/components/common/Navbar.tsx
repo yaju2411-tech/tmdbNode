@@ -1,4 +1,4 @@
-import { SearchIcon, Eye, EyeOff, X, SunIcon, MoonIcon, MenuIcon, HelpCircle, Crown, Tv, Film, DollarSign } from "lucide-react";
+import { SearchIcon, X, SunIcon, MoonIcon, MenuIcon, HelpCircle, Crown, Tv, Film, DollarSign } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useRef, useEffect, useState } from "react";
 import useSignUpHook from "../../hooks/useSignUpHook";
@@ -28,8 +28,6 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
   const [isSubModalOpen, setIsSubModalOpen] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
-  const [profilePassword, setProfilePassword] = useState("");
-  const [showProfilePassword, setShowProfilePassword] = useState(false);
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [profilePreview, setProfilePreview] = useState<string | undefined>();
   const [isDark, setIsDark] = useState(true);
@@ -81,11 +79,9 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
 
   const handleUpdateProfile = async () => {
     try {
-      if (!profileEmail || !profileFile) return;
+      if (!profileName && !profileFile) return;
       await updateProfile({
         name: profileName,
-        email: profileEmail,
-        password: profilePassword,
         file: profileFile,
       });
       setIsProfileOpen(false);
@@ -311,36 +307,13 @@ const Navbar = ({ onSearch, searchText, setOpenSidebar }: Props) => {
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium">Email</label>
                       <Input
-                        className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors"
+                        className="bg-gray-100 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-70 transition-colors"
                         value={profileEmail}
-                        onChange={(e) => setProfileEmail(e.target.value)}
+                        disabled
                         type="email"
+                        title="Email address cannot be changed"
                       />
                     </div>
-                    {!isGoogle && (
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium">New Password</label>
-                        <div className="relative">
-                          <Input
-                            className="bg-gray-50 dark:bg-zinc-900 border-gray-300 dark:border-zinc-800 transition-colors pr-10"
-                            value={profilePassword}
-                            onChange={(e) => setProfilePassword(e.target.value)}
-                            type={showProfilePassword ? "text" : "password"}
-                            placeholder="Leave blank to keep same"
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowProfilePassword(!showProfilePassword);
-                            }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                          >
-                            {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <DialogFooter>
                     <Button

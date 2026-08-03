@@ -283,7 +283,22 @@ export const sendPasswordResetFromAdmin = async (req, res, next) => {
         );
 
         let emailSent = false;
-        const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password-conform?email=${encodeURIComponent(ticket.email)}&otp=${otp}`;
+        
+        const reqOrigin = req.get("origin") || req.get("referer");
+        let frontendDomain = process.env.CLIENT_URL || process.env.FRONTEND_URL;
+        if (!frontendDomain && reqOrigin) {
+            try {
+                frontendDomain = new URL(reqOrigin).origin;
+            } catch (e) {
+                // ignore invalid url parsing
+            }
+        }
+        if (!frontendDomain) {
+            frontendDomain = process.env.NODE_ENV === "production" ? "https://tmdb-node.vercel.app" : "http://localhost:5173";
+        }
+        frontendDomain = frontendDomain.replace(/\/$/, "");
+
+        const resetUrl = `${frontendDomain}/reset-password-conform?email=${encodeURIComponent(ticket.email)}&otp=${otp}`;
 
         try {
             await sendEmailMessage({

@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Eye, EyeOff } from "lucide-react";
 import useSignUpHook from "../../hooks/useSignUpHook";
 
 interface Props {
@@ -12,16 +11,12 @@ interface Props {
 
 export const SettingsModal = ({ isOpen, setIsOpen }: Props) => {
   const fileRef = useRef<HTMLInputElement>(null);
-  const { userData, updateProfile, provider, updateProfileLoading } = useSignUpHook();
+  const { userData, updateProfile, updateProfileLoading } = useSignUpHook();
   
   const [profileName, setProfileName] = useState("");
   const [profileEmail, setProfileEmail] = useState("");
-  const [profilePassword, setProfilePassword] = useState("");
-  const [showProfilePassword, setShowProfilePassword] = useState(false);
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [profilePreview, setProfilePreview] = useState<string | undefined>();
-
-  const isGoogle = provider === "google";
 
   useEffect(() => {
     if (userData) {
@@ -33,14 +28,12 @@ export const SettingsModal = ({ isOpen, setIsOpen }: Props) => {
 
   const handleUpdateProfile = async () => {
     try {
-      if (!profileEmail && !profileName && !profileFile && !profilePassword) {
-          setIsOpen(false);
-          return;
+      if (!profileName && !profileFile) {
+        setIsOpen(false);
+        return;
       }
       await updateProfile({
         name: profileName,
-        email: profileEmail,
-        password: profilePassword,
         file: profileFile,
       });
       setIsOpen(false);
@@ -108,34 +101,13 @@ export const SettingsModal = ({ isOpen, setIsOpen }: Props) => {
         <div className="flex flex-col gap-1 mt-2">
           <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">Email</label>
           <Input
-            className="bg-gray-50 dark:bg-[#18181b] border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white transition-colors h-10"
+            className="bg-gray-100 dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-gray-400 cursor-not-allowed opacity-70 transition-colors h-10"
             value={profileEmail}
-            onChange={(e) => setProfileEmail(e.target.value)}
+            disabled
             type="email"
+            title="Email address cannot be changed"
           />
         </div>
-        
-        {!isGoogle && (
-          <div className="flex flex-col gap-1 mt-2 mb-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">New Password</label>
-            <div className="relative">
-              <Input
-                className="bg-gray-50 dark:bg-[#18181b] border-gray-200 dark:border-zinc-800 text-gray-900 dark:text-white transition-colors pr-10 h-10 placeholder:text-gray-400 dark:placeholder:text-zinc-500"
-                value={profilePassword}
-                onChange={(e) => setProfilePassword(e.target.value)}
-                type={showProfilePassword ? "text" : "password"}
-                placeholder="Leave blank to keep same"
-              />
-              <button
-                type="button"
-                onClick={(e) => { e.preventDefault(); setShowProfilePassword(!showProfilePassword); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-white"
-              >
-                {showProfilePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-        )}
         
         <DialogFooter className="mt-4">
           <Button

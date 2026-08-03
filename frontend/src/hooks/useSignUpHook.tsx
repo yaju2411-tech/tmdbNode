@@ -192,9 +192,11 @@ const useSignUpHook = () => {
 
   // UPDATE PROFILE
   const updateProfileMutation = useMutation({
-    mutationFn: async ({ name, file }: { name: string; email: string; password: string; file: File | null; }) => {
+    mutationFn: async ({ name, file }: { name?: string; file?: File | null; }) => {
       const formData = new FormData();
-      formData.append("name", name);
+      if (name) {
+        formData.append("name", name);
+      }
       if (file) {
         formData.append("avatar", file);
       }
